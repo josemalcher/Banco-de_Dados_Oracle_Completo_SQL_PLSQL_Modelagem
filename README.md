@@ -129,25 +129,30 @@ SQL>
 [recursos/Seção+3+-+Pratica+Aula+1.sql](recursos/Seção+3+-+Pratica+Aula+1.sql)
 
 
-
 ### 05 Criando uma conexão para o usuário SYS (dba) no Oracle SQL Developer
+
+[recursos/Seção+3+-+Pratica+Aula+2.sql](recursos/Seção+3+-+Pratica+Aula+2.sql)
 
 
 ### 06 Criando o Usuário HR
 
+[recursos/Seção+3+-+Aula+3+-+Cria+Usuario+HR.sql](recursos/Seção+3+-+Aula+3+-+Cria+Usuario+HR.sql)
 
 ### 07 Criando uma conexão para o usuário HR no SQL Developer
 
+[recursos/Seção+3+-+Pratica+Aula+4.sql](recursos/Seção+3+-+Pratica+Aula+4.sql)
 
 ### 08 Criando os objetos do schema do usuário HR
 
+[recursos/Seção+3+-+Aula+5+-+Cria+Objetos+schema+HR.sql](recursos/Seção+3+-+Aula+5+-+Cria+Objetos+schema+HR.sql)
 
 ### 09 Populando os objetos do schema do usuário HR
 
+[recursos/Seção+3+-+Aula+6+-+Populando+Objetos+schema+HR.sql](recursos/Seção+3+-+Aula+6+-+Populando+Objetos+schema+HR.sql)
 
 ### 10 Criando Índices, inserindo comentários e outros no schema do usuário HR
 
-
+[recursos/Seção+3+-+Aula+7+-+Criando+indices+e+comentarios+schema+HR.sql](recursos/Seção+3+-+Aula+7+-+Criando+indices+e+comentarios+schema+HR.sql)
 
 [Voltar ao Índice](#indice)
 
