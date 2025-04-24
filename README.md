@@ -161,7 +161,11 @@ SQL>
 
 ## <a name="parte4">4 - Seção 04: Oracle SQL - Visão Geral do Oracle Database</a>
 
+### 11. Oracle SQL - Visão Geral do Oracle Database 21c
 
+![img/4_11_bd.jpeg](img/4_11_bd.jpeg)
+
+![img/4_11_2_bd.jpeg](img/4_11_2_bd.jpeg)
 
 [Voltar ao Índice](#indice)
 
@@ -170,6 +174,17 @@ SQL>
 
 ## <a name="parte5">5 - Seção 05: Oracle SQL - Introdução ao SQL</a>
 
+### 12. Oracle SQL - Introdução ao SQL
+
+https://docs.oracle.com/en/database/index.html
+
+![4_11_3_bd.jpeg](img/4_11_3_bd.jpeg)
+
+![img/5_11_2_bd.jpeg](img/5_11_2_bd.jpeg)
+
+![img/5_11_3_bd.jpeg](img/5_11_3_bd.jpeg)
+
+![img/5_11_4_bd.jpeg](img/5_11_4_bd.jpeg)
 
 
 [Voltar ao Índice](#indice)
