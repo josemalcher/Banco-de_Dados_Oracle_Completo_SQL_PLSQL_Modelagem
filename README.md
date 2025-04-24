@@ -58,6 +58,13 @@ CURSO ORACLE 2024 COMPLETO - Incluindo 3 cursos: SQL PL/SQL e Modelagem de Banco
 
 ## <a name="parte1">1 - Seção 01: Oracle SQL - Apresentação do Curso Oracle SQL</a>
 
+### 1 Apresentação do curso Oracle SQL.
+
+[recursos/Seção+2+-+Pratica+Aula+1.sql](recursos/Seção+2+-+Pratica+Aula+1.sql)
+
+![img/1_1_bd.jpeg](img/1_1_bd.jpeg)
+
+![img/1_2_bd.jpeg](img/1_2_bd.jpeg)
 
 
 [Voltar ao Índice](#indice)
@@ -69,12 +76,76 @@ CURSO ORACLE 2024 COMPLETO - Incluindo 3 cursos: SQL PL/SQL e Modelagem de Banco
 
 
 
+### 2 Download e Instalação do Oracle Database 21c XE
+
+![img/image.png](img/image.png)
+
+![img/2_2_process.png](img/2_2_process.png)
+
+
+### 3 Configurando o LISTENER e o TNSNAMES - Criando e testando uma Conexão Local
+
+[recursos/Seção+2+-+Pratica+Aula+2.sql](recursos/Seção+2+-+Pratica+Aula+2.sql)
+
+```
+C:\Users\josem>sqlplus system/oracle@xepdb1
+
+SQL*Plus: Release 21.0.0.0.0 - Production on Thu Apr 24 15:19:30 2025
+Version 21.3.0.0.0
+
+Copyright (c) 1982, 2021, Oracle.  All rights reserved.
+
+ERROR:
+ORA-01017: invalid username/password; logon denied
+
+
+Enter user-name: system
+Enter password:
+Last Successful login time: Thu Apr 24 2025 15:17:25 -03:00
+
+Connected to:
+Oracle Database 21c Express Edition Release 21.0.0.0.0 - Production
+Version 21.3.0.0.0
+
+SQL> select sysdate from dual;
+
+SYSDATE
+---------
+24-APR-25
+
+SQL>
+```
+
+
 [Voltar ao Índice](#indice)
 
 ---
 
 
 ## <a name="parte3">3 - Seção 03: Download e Instalação do Oracle SQL Developer</a>
+
+### 04 Download e Instalação do Oracle SQL Developer
+
+[recursos/Seção+3+-+Pratica+Aula+1.sql](recursos/Seção+3+-+Pratica+Aula+1.sql)
+
+
+
+### 05 Criando uma conexão para o usuário SYS (dba) no Oracle SQL Developer
+
+
+### 06 Criando o Usuário HR
+
+
+### 07 Criando uma conexão para o usuário HR no SQL Developer
+
+
+### 08 Criando os objetos do schema do usuário HR
+
+
+### 09 Populando os objetos do schema do usuário HR
+
+
+### 10 Criando Índices, inserindo comentários e outros no schema do usuário HR
 
 
 
