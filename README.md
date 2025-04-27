@@ -194,7 +194,187 @@ https://docs.oracle.com/en/database/index.html
 
 ## <a name="parte6">6 - Seção 06: Oracle SQL - Consultando dados utilizando o comando SQL SELECT</a>
 
+### 13. Oracle SQL - Consultando dados utilizando o comando SQL SELECT
 
+- [recursos/Seção+6+-+Prática+Aula+1.sql](recursos/Seção+6+-+Prática+Aula+1.sql)
+
+![alt text](img/13_1.png)
+
+
+#### Escrevendo comandos SQL
+
+- Comandos SQL não são case sensitivos
+- Comandos SQL podem se estender por uma ou mais linhas
+- Palavras-chave (Keywords) não podem ser abreviadas ou divididas através das linhas
+- Cláusulas são normalmente colocadas em linhas separadas
+- Indentações são utilizadas para facilitar o entendimento do comando
+- Comandos SQL são terminados por ponto e vírgula (;)
+
+
+#### Alinhamento de colunas em cabeçalhos
+
+- **Colunas Character e Date**  
+  Alinhamento default do cabeçalho: Esquerda
+- **Colunas Number**  
+  Alinhamento default do cabeçalho: Direita
+- **Exibição default do cabeçalho**: Letras Maiúsculas
+
+#### Regras de Precedência de Operadores
+
+Mesmas regras de precedência da matemática:
+1. Identidade (Positivo ou Negativo).
+2. Multiplicação e Divisão: possuem a mesma precedência, resolvendo da esquerda para a direita.
+3. Soma e Subtração: possuem a mesma precedência, resolvendo da esquerda para a direita.
+
+#### Entendo o valor Nulo (NULL)
+
+- Null é ausência de valor.
+- Null não é zero.
+- Null não é espaços em branco.
+- Null não é zeros binários.
+
+#### Utilizando Valores Nulos em Expressões Aritméticas
+
+- **Qualquer expressão aritmética utilizando NULL retorna NULL.**
+
+```sql
+SELECT  first_name, last_name, job_id, commission_pct, 200000 * commission_pct
+FROM    employees
+WHERE   commission_pct IS NULL;
+
+
+FIRST_NAME           LAST_NAME                 JOB_ID     COMMISSION_PCT 200000*COMMISSION_PCT
+-------------------- ------------------------- ---------- -------------- ---------------------
+Donald               OConnell                  SH_CLERK                                       
+Douglas              Grant                     SH_CLERK                                       
+Jennifer             Whalen                    AD_ASST                                        
+Michael              Hartstein                 MK_MAN                                         
+Pat                  Fay                       MK_REP                                         
+Susan                Mavris                    HR_REP                                         
+Hermann              Baer                      PR_REP                                         
+Shelley              Higgins                   AC_MGR                                         
+William              Gietz                     AC_ACCOUNT                                     
+Steven               King                      AD_PRES                                        
+Neena                Kochhar                   AD_VP                                          
+```
+
+#### Alias de Coluna
+
+- Renomeia o cabeçalho da coluna.
+- Segue imediatamente o nome da coluna.
+- Opcionalmente pode ser utilizada a palavra-chave **AS** entre a coluna e o alias.
+- Quando o alias contém espaços, caracteres especiais ou for case sensitive (letras minúsculas), então deve ser colocado entre aspas duplas (").
+
+```sql
+SELECT first_name "Nome", last_name "Sobrenome", salary "Salário ($)", commission_pct "Percentual de comissão"
+FROM   employees;
+
+
+Nome                 Sobrenome                 Salário ($) Percentual de comissão
+-------------------- ------------------------- ----------- ----------------------
+Donald               OConnell                         2600                       
+Douglas              Grant                            2600                       
+Jennifer             Whalen                           4400                       
+Michael              Hartstein                       13000                       
+```
+
+#### Operador de concatenação
+
+- Liga colunas ou strings de caracteres com outras colunas ou strings de caracteres.
+- É representado por duas barras verticais (||).
+- Cria uma coluna resultante da ligação que é um string de caracteres.
+
+```sql
+SELECT first_name || ' ' || last_name || ', data de admissão: ' || hire_date "Funcionário"
+FROM   employees;
+
+
+Funcionário                                                                         
+------------------------------------------------------------------------------------
+Lisa Ozer, data de admissão: 11-MAR-05
+Harrison Bloom, data de admissão: 23-MAR-06
+Tayler Fox, data de admissão: 24-JAN-06
+William Smith, data de admissão: 23-FEB-07
+Elizabeth Bates, data de admissão: 24-MAR-07
+Sundita Kumar, data de admissão: 21-APR-08
+Ellen Abel, data de admissão: 11-MAY-04
+Alyssa Hutton, data de admissão: 19-MAR-05
+Jonathon Taylor, data de admissão: 24-MAR-06
+Jack Livingston, data de admissão: 23-APR-06
+Kimberely Grant, data de admissão: 24-MAY-07
+```
+#### Strings de caracteres
+
+- Um literal é um caracter, um número, ou uma string que é incluída em um comando SELECT.
+- Literais de Datas e caracteres devem ser definidos entre aspas simples (`'`).
+- Cada literal ou string de caracteres será exibido uma vez para cada linha retornada.
+
+#### Operador alternativo para aspas
+
+- Você pode especificar seu próprio operador alternativo para aspas.
+- Escolha qualquer delimitador.
+- Facilita a legibilidade e usabilidade.
+
+```sql
+SELECT department_name || q'[ Department's Manager Id: ]'
+|| manager_id "Departamento e Gerente"
+FROM departments;
+
+
+Departamento e Gerente                                                                          
+------------------------------------------------------------------------------------------------
+Administration Department's Manager Id: 200
+Marketing Department's Manager Id: 201
+Purchasing Department's Manager Id: 114
+Human Resources Department's Manager Id: 203
+Shipping Department's Manager Id: 121
+IT Department's Manager Id: 103
+Public Relations Department's Manager Id: 204
+Sales Department's Manager Id: 145
+Executive Department's Manager Id: 100
+Finance Department's Manager Id: 108
+Accounting Department's Manager Id: 205
+```
+
+#### Linhas duplicadas
+
+- Por default as consultas exibem todas as linhas retornadas, incluindo as linhas duplicadas.
+
+```sql
+-- Linhas duplicadas
+SELECT department_id
+FROM employees;
+
+DEPARTMENT_ID
+-------------
+           50
+           50
+           10
+           20
+           20
+           40
+           70
+
+-- Utilizando DISTINCT para eliminar linhas duplicadas
+
+SELECT DISTINCT department_id
+FROM employees;
+
+
+DEPARTMENT_ID
+-------------
+           50
+           10
+           20
+           40
+           70
+          110
+           90
+           60
+          100
+           30
+           80
+```
 
 [Voltar ao Índice](#indice)
 
