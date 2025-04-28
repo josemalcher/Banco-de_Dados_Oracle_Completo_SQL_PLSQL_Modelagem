@@ -178,13 +178,225 @@ SQL>
 
 https://docs.oracle.com/en/database/index.html
 
-![4_11_3_bd.jpeg](img/4_11_3_bd.jpeg)
 
-![img/5_11_2_bd.jpeg](img/5_11_2_bd.jpeg)
+#### Data Manipulation Language (DML)
 
-![img/5_11_3_bd.jpeg](img/5_11_3_bd.jpeg)
+- **SELECT**  
+  Recupera dados de uma tabela ou vista no banco de dados.
 
-![img/5_11_4_bd.jpeg](img/5_11_4_bd.jpeg)
+- **INSERT**  
+  Adiciona novos registros em uma tabela.
+
+- **UPDATE**  
+  Modifica registros existentes em uma tabela.
+
+- **DELETE**  
+  Remove registros de uma tabela.
+
+- **MERGE**  
+  Combina registros de duas tabelas baseando-se em condições definidas.
+
+
+##### Explicação com exemplos de código SQL
+
+1. **SELECT**:  
+   O comando `SELECT` é usado para buscar dados de tabelas.  
+   ```sql
+   SELECT nome, idade FROM funcionarios WHERE departamento = 'Vendas';
+   SELECT * FROM produtos;
+   ```
+
+2. **INSERT**:  
+   Utilizado para inserir novos registros em uma tabela.  
+   ```sql
+   INSERT INTO funcionarios (nome, idade, departamento) VALUES ('Ana', 28, 'RH');
+   INSERT INTO produtos (nome, preco) VALUES ('Celular', 1200);
+   ```
+
+3. **UPDATE**:  
+   Modifica dados existentes em uma tabela.  
+   ```sql
+   UPDATE funcionarios SET idade = 29 WHERE nome = 'Ana';
+   UPDATE produtos SET preco = 1150 WHERE nome = 'Celular';
+   ```
+
+4. **DELETE**:  
+   Remove registros de uma tabela.  
+   ```sql
+   DELETE FROM funcionarios WHERE departamento = 'Vendas';
+   DELETE FROM produtos WHERE preco > 5000;
+   ```
+
+5. **MERGE**:  
+   Combina registros entre tabelas com base em condições.  
+   ```sql
+   MERGE INTO funcionarios destino
+   USING novos_funcionarios origem
+   ON destino.id = origem.id
+   WHEN MATCHED THEN
+       UPDATE SET destino.nome = origem.nome
+   WHEN NOT MATCHED THEN
+       INSERT (id, nome, idade, departamento)
+       VALUES (origem.id, origem.nome, origem.idade, origem.departamento);
+   ```
+
+
+##### Data Definition Language (DDL)
+
+- **CREATE**  
+  Usado para criar novos objetos no banco de dados (tabelas, índices, vistas, etc.).
+
+- **ALTER**  
+  Usado para modificar a estrutura de objetos existentes no banco de dados.
+
+- **DROP**  
+  Usado para deletar objetos existentes no banco de dados.
+
+- **RENAME**  
+  Usado para renomear objetos do banco de dados.
+
+- **TRUNCATE**  
+  Usado para remover todas as linhas de uma tabela rapidamente, sem log de exclusão.
+
+- **COMMENT**  
+  Usado para adicionar comentários nos objetos do banco de dados.
+
+
+##### Explicação com exemplos de código SQL
+
+1. **CREATE**:  
+   O comando `CREATE` é utilizado para criar novos objetos no banco de dados.  
+   ```sql
+   CREATE TABLE funcionarios (
+       id INT PRIMARY KEY,
+       nome VARCHAR(100),
+       cargo VARCHAR(50),
+       salario DECIMAL(10, 2)
+   );
+   ```
+
+2. **ALTER**:  
+   O comando `ALTER` modifica objetos existentes.  
+   ```sql
+   ALTER TABLE funcionarios ADD email VARCHAR(100);
+   ALTER TABLE funcionarios DROP COLUMN email;
+   ```
+
+3. **DROP**:  
+   O comando `DROP` deleta objetos do banco de dados.  
+   ```sql
+   DROP TABLE funcionarios;
+   DROP INDEX idx_nome;
+   ```
+
+4. **RENAME**:  
+   O comando `RENAME` renomeia objetos.  
+   ```sql
+   RENAME TABLE funcionarios TO colaboradores;
+   ```
+
+5. **TRUNCATE**:  
+   O comando `TRUNCATE` remove todas as linhas de uma tabela.  
+   ```sql
+   TRUNCATE TABLE funcionarios;
+   ```
+
+6. **COMMENT**:  
+   O comando `COMMENT` adiciona comentários nos objetos do banco de dados.  
+   ```sql
+   COMMENT ON TABLE funcionarios IS 'Tabela com informações sobre os funcionários';
+   COMMENT ON COLUMN funcionarios.nome IS 'Nome completo do funcionário';
+   ```
+
+
+#### Data Control Language (DCL)
+
+##### GRANT
+- Usado para conceder permissões a usuários ou roles para acessar objetos do banco de dados.  
+  **Exemplo de código SQL:**  
+  ```sql
+  GRANT SELECT, INSERT ON funcionarios TO usuario1;
+  GRANT ALL PRIVILEGES ON tabela TO role1;
+  ```
+
+##### REVOKE
+- Usado para remover permissões previamente concedidas a usuários ou roles.  
+  **Exemplo de código SQL:**  
+  ```sql
+  REVOKE SELECT, INSERT ON funcionarios FROM usuario1;
+  REVOKE ALL PRIVILEGES ON tabela FROM role1;
+  ```
+
+
+#### Transaction Control
+
+- **COMMIT**
+- **ROLLBACK**
+- **SAVEPOINT**
+
+
+#### **COMMIT**
+`COMMIT` é usado para **salvar** todas as alterações feitas durante a transação no banco de dados de forma permanente.
+
+**Exemplo SQL:**
+```sql
+BEGIN TRANSACTION;
+
+INSERT INTO clientes (nome, email) VALUES ('Maria', 'maria@email.com');
+UPDATE clientes SET email = 'novoemail@email.com' WHERE id = 1;
+
+COMMIT;
+```
+> **Explicação:**  
+> Depois do `COMMIT`, as alterações ficam permanentes no banco de dados.
+
+---
+
+#### **ROLLBACK**
+`ROLLBACK` é usado para **desfazer** todas as alterações feitas na transação atual, voltando o banco de dados ao estado anterior ao início da transação.
+
+**Exemplo SQL:**
+```sql
+BEGIN TRANSACTION;
+
+DELETE FROM clientes WHERE id = 2;
+
+-- Opa, percebemos que o ID estava errado
+ROLLBACK;
+```
+> **Explicação:**  
+> O `ROLLBACK` cancela a exclusão do cliente, como se a operação nunca tivesse ocorrido.
+
+---
+
+#### **SAVEPOINT**
+`SAVEPOINT` cria um **ponto de salvamento** dentro de uma transação, permitindo que você faça um `ROLLBACK` apenas até esse ponto, sem cancelar toda a transação.
+
+**Exemplo SQL:**
+```sql
+BEGIN TRANSACTION;
+
+INSERT INTO pedidos (produto, quantidade) VALUES ('Notebook', 1);
+SAVEPOINT ponto1;
+
+INSERT INTO pedidos (produto, quantidade) VALUES ('Teclado', 2);
+
+-- Algo deu errado na segunda inserção
+ROLLBACK TO ponto1;
+
+COMMIT;
+```
+> **Explicação:**  
+> Usamos `SAVEPOINT` para marcar um momento seguro. Se houver erro depois dele, o `ROLLBACK TO` retorna até aquele ponto, e não até o início da transação.
+
+---
+
+### 🧠 Dicas de Melhores Práticas:
+- Sempre use `COMMIT` apenas quando tiver certeza de que todos os dados foram manipulados corretamente.
+- Use `SAVEPOINT` para operações mais delicadas, onde erros parciais podem ocorrer.
+- Após um `ROLLBACK`, revise o que aconteceu antes de tentar a operação de novo.
+
+
 
 
 [Voltar ao Índice](#indice)
@@ -382,6 +594,8 @@ DEPARTMENT_ID
 
 
 ## <a name="parte7">7 - Seção 07: Oracle SQL - Restringindo e Ordenando Dados</a>
+
+### 14. Oracle SQL - Restringindo e Ordenando Dados
 
 
 
