@@ -597,6 +597,621 @@ DEPARTMENT_ID
 
 ### 14. Oracle SQL - Restringindo e Ordenando Dados
 
+- [recursos/Seção+7+-+Prática+Aula+1.sql](/recursos/Seção+7+-+Prática+Aula+1.sql)
+
+#### Restringindo as linhas que serão retornadas
+
+- Selecione as linhas que serão retornadas utilizando a cláusula `WHERE`
+
+A cláusula `WHERE` é usada para **filtrar registros** que satisfazem uma condição específica. Apenas as linhas que atendem ao critério da cláusula `WHERE` serão incluídas no resultado da consulta.
+
+---
+
+### 📌 Exemplos de uso da cláusula `WHERE`
+
+#### 1. Selecionar clientes de um país específico
+
+```sql
+SELECT * FROM clientes
+WHERE pais = 'Brasil';
+```
+
+Esse comando retorna todos os clientes cujo país seja "Brasil".
+
+---
+
+#### 2. Filtrar produtos com preço maior que 100
+
+```sql
+SELECT nome, preco FROM produtos
+WHERE preco > 100;
+```
+
+Retorna o nome e preço dos produtos que custam mais de R$ 100.
+
+---
+
+#### 3. Buscar funcionários com salário entre 3000 e 6000
+
+```sql
+SELECT nome, salario FROM funcionarios
+WHERE salario BETWEEN 3000 AND 6000;
+```
+
+Usa `BETWEEN` para retornar funcionários com salários dentro desse intervalo.
+
+---
+
+#### 4. Encontrar pedidos feitos após uma certa data
+
+```sql
+SELECT * FROM pedidos
+WHERE data_pedido > '2024-01-01';
+```
+
+Retorna todos os pedidos realizados após 1º de janeiro de 2024.
+
+---
+
+#### 5. Buscar nomes que começam com a letra "A"
+
+```sql
+SELECT nome FROM usuarios
+WHERE nome LIKE 'A%';
+```
+
+Utiliza `LIKE` com o caractere curinga `%` para encontrar nomes que começam com "A".
+
+---
+
+### ✅ Boas práticas
+
+- Utilize índices nas colunas frequentemente usadas em cláusulas `WHERE` para melhorar o desempenho.
+- Evite funções nas colunas da cláusula `WHERE` quando possível, pois isso pode desativar o uso de índices.
+- Prefira operadores como `BETWEEN`, `IN`, `LIKE` com cuidado para manter a legibilidade e performance.
+
+---
+
+### ⚠️ Evitar
+
+- Evite escrever condições vagas ou sem filtro, como `WHERE 1=1`, pois isso pode resultar em consultas ineficientes ou até perigosas.
+- Não confunda `=` com `LIKE` ou `IN` — cada um tem seu propósito específico para filtragem.
+
+---
+
+#### Strings de caractere e datas
+
+- **Strings de caracteres e datas são delimitados por aspas simples (`'`)**
+
+  Em SQL, qualquer valor literal de texto ou data precisa estar entre aspas simples.
+
+  **Exemplo:**
+  ```sql
+  SELECT * FROM produtos WHERE nome = 'Teclado';
+  SELECT * FROM pedidos WHERE data_pedido = '2024-04-29';
+  ```
+
+---
+
+- **Valores de strings de caracteres são case sensitive**
+
+  Comparações de strings em muitos bancos de dados (como PostgreSQL e Oracle) diferenciam letras maiúsculas de minúsculas.
+
+  **Exemplo:**
+  ```sql
+  SELECT * FROM usuarios WHERE nome = 'João';  -- diferente de 'joão'
+  ```
+
+  > 🔍 Observação: em bancos como MySQL, a sensibilidade a maiúsculas/minúsculas pode depender do collation da tabela/coluna (`utf8_general_ci` ignora maiúsculas).
+
+---
+
+- **Valores de strings de data são sensíveis ao formato definido para o banco de dados ou para a sessão**
+
+  Isso significa que a forma como as datas são inseridas ou comparadas deve respeitar o formato de data vigente.
+
+  **Exemplo:**
+  ```sql
+  SELECT * FROM vendas WHERE data_venda = TO_DATE('29/04/2024', 'DD/MM/YYYY');
+  ```
+
+  Em Oracle, por exemplo, a função `TO_DATE` permite especificar o formato. Outros bancos, como PostgreSQL ou MySQL, também podem exigir formatações específicas ou utilizar funções próprias para manipulação de datas.
+
+---
+
+- **O formato default para exibição de datas mais utilizado no Brasil é ‘DD/MM/YY’ ou ‘DD/MM/RR’**
+
+  - `DD` = Dia
+  - `MM` = Mês
+  - `YY` ou `RR` = Ano com dois dígitos
+
+  **Exemplo:**
+  ```sql
+  SELECT TO_CHAR(SYSDATE, 'DD/MM/YY') FROM dual;  -- Oracle
+  SELECT DATE_FORMAT(NOW(), '%d/%m/%y');          -- MySQL
+  ```
+
+  O formato pode ser configurado na sessão ou definido como padrão pelo banco.
+
+---
+
+### ✅ Boas práticas
+
+- Sempre use `TO_DATE()` (Oracle) ou `DATE_FORMAT()`/`STR_TO_DATE()` (MySQL) para evitar ambiguidades.
+- Mantenha consistência no formato de datas em toda a aplicação.
+- Utilize `UPPER()` ou `LOWER()` se quiser evitar problemas com case sensitivity em strings.
+
+### ⚠️ Evitar
+
+- Não esquecer de usar aspas simples em valores literais.
+- Evitar misturar formatos de datas em diferentes partes do código.
+- Não confiar no comportamento "default" do banco sem confirmar a configuração de localidade (NLS, locale, etc).
+
+#### Operadores de comparação
+
+| Operator        | Meaning                            |
+|----------------|------------------------------------|
+| =              | Equal to                           |
+| >              | Greater than                       |
+| >=             | Greater than or equal to           |
+| <              | Less than                          |
+| <=             | Less than or equal to              |
+| <>             | Not equal to                       |
+| BETWEEN ...AND... | Between two values (inclusive)  |
+| IN(set)        | Match any of a list of values      |
+| LIKE           | Match a character pattern          |
+| IS NULL        | Is a null value                    |
+
+
+
+#### Selecionando valores por coincidência com padrões utilizando o operador LIKE
+
+- Use o operador LIKE para executar pesquisas de valores que coincidem com padrões utilizando caracteres curingas (wildcards).
+- As Condições de pesquisa podem conter caracteres ou números:
+  - `%` Combina com zero ou mais caracteres
+  - `_` Combina com um e somente um caractere
+
+---
+
+### Explicação com exemplos em Oracle SQL
+
+#### 1. **LIKE com o caractere `%`**
+O caractere `%` é utilizado para corresponder a **zero ou mais caracteres**. Muito útil para localizar palavras com início, meio ou fim conhecido.
+
+**Exemplo:**
+```sql
+SELECT * FROM clientes
+WHERE nome LIKE 'Mar%';
+```
+*Seleciona todos os clientes cujo nome começa com "Mar", como "Maria", "Marcos", "Martins".*
+
+#### 2. **LIKE com o caractere `_`**
+O caractere `_` substitui **apenas um caractere**. Ideal quando você quer buscar por valores com comprimento fixo ou variação mínima.
+
+**Exemplo:**
+```sql
+SELECT * FROM produtos
+WHERE codigo LIKE 'A_1';
+```
+*Seleciona todos os produtos cujo código tenha três caracteres e comece com "A", seguido de qualquer um caractere, e termine com "1".*
+
+#### 3. **Combinação dos curingas**
+Você também pode combinar `%` e `_` para pesquisas mais refinadas.
+
+**Exemplo:**
+```sql
+SELECT * FROM funcionarios
+WHERE cargo LIKE '_anal%';
+```
+*Busca cargos que tenham um caractere antes de "anal" e qualquer quantidade de caracteres depois, como "Analista", "canalizador", etc.*
+
+---
+
+#### Comparações com valor NULO (NULL)
+
+- Qualquer comparação com valor NULL retorna o booleano NULL
+- **Para podermos verificar se um valor é NULL deve ser utilizado a expressão IS NULL**
+
+---
+
+### Explicações e Exemplos em Oracle SQL
+
+#### 1. **Comparações com NULL não funcionam com operadores tradicionais**
+
+No Oracle (e em SQL no geral), valores `NULL` representam **desconhecido**, então qualquer operação com `NULL` resulta em `NULL` (não verdadeiro nem falso).
+
+**Errado:**
+```sql
+SELECT * FROM funcionarios
+WHERE salario = NULL;
+```
+*Esse comando não retorna nada, porque `salario = NULL` nunca será verdadeiro.*
+
+---
+
+#### 2. **Forma correta: `IS NULL` e `IS NOT NULL`**
+
+Use `IS NULL` para verificar se um campo **não possui valor**.
+
+**Exemplo com `IS NULL`:**
+```sql
+SELECT * FROM funcionarios
+WHERE comissao IS NULL;
+```
+*Retorna funcionários que **não recebem comissão**.*
+
+**Exemplo com `IS NOT NULL`:**
+```sql
+SELECT * FROM funcionarios
+WHERE comissao IS NOT NULL;
+```
+*Retorna funcionários que **recebem alguma comissão**.*
+
+---
+
+#### Definindo Condições utilizando Operadores Lógicos
+
+- **AND** – Retorna TRUE se ambas as condições são verdadeiras
+- **OR** – Retorna TRUE se pelo menos uma das condições for verdadeira
+- **NOT** – Retorna a negação da condição.  
+  - Retorna TRUE se a condição é falsa  
+  - Retorna FALSE se a condição é verdadeira  
+  - Retorna NULL se a condição é NULL
+
+---
+
+### Explicações com exemplos em Oracle SQL
+
+#### 🔹 **AND**
+
+Usado quando **todas** as condições devem ser verdadeiras para retornar um resultado.
+
+**Exemplo:**
+```sql
+SELECT * FROM funcionarios
+WHERE departamento_id = 10
+AND salario > 3000;
+```
+*Seleciona funcionários do departamento 10 que recebem mais de 3000.*
+
+---
+
+#### 🔹 **OR**
+
+Usado quando **pelo menos uma** condição deve ser verdadeira.
+
+**Exemplo:**
+```sql
+SELECT * FROM funcionarios
+WHERE departamento_id = 10
+OR salario > 3000;
+```
+*Seleciona funcionários do departamento 10 **ou** que recebem mais de 3000.*
+
+---
+
+#### 🔹 **NOT**
+
+Usado para **negar** uma condição lógica.
+
+**Exemplo:**
+```sql
+SELECT * FROM funcionarios
+WHERE NOT (departamento_id = 10);
+```
+*Seleciona todos os funcionários **exceto** os do departamento 10.*
+
+---
+
+### Observação sobre NULL com NOT
+
+Quando se usa `NOT` com uma expressão que retorna `NULL`, o resultado continua sendo `NULL`. Exemplo:
+
+```sql
+SELECT * FROM funcionarios
+WHERE NOT (comissao IS NULL);
+```
+*Seleciona todos os funcionários **que possuem comissão**, pois `IS NULL` retorna TRUE apenas quando o valor é de fato nulo.*
+
+---
+
+#### Regras de Precedência
+
+1. Operadores aritméticos  
+2. Operador de concatenação  
+3. Condições de comparação  
+4. IS [NOT] NULL, LIKE, [NOT] IN  
+5. [NOT] BETWEEN  
+6. NOT EQUAL TO  
+7. NOT condição lógica  
+8. AND condição lógica  
+9. OR condição lógica
+
+---
+
+### 📘 Explicações e Exemplos SQL (Oracle)
+
+#### 1. **Operadores aritméticos**
+Executam cálculos matemáticos primeiro.
+
+```sql
+SELECT nome, salario + salario * 0.10 AS novo_salario
+FROM funcionarios;
+```
+*Aumenta o salário em 10% usando operadores aritméticos.*
+
+---
+
+#### 2. **Operador de concatenação (`||`)**
+Concatena duas ou mais strings.
+
+```sql
+SELECT nome || ' - ' || cargo AS descricao
+FROM funcionarios;
+```
+*Concatena o nome e o cargo do funcionário.*
+
+---
+
+#### 3. **Condições de comparação (`=`, `<`, `>`, `<=`, `>=`, `<>`)**
+
+```sql
+SELECT * FROM funcionarios
+WHERE salario >= 3000;
+```
+*Filtra funcionários com salário maior ou igual a 3000.*
+
+---
+
+#### 4. **`IS [NOT] NULL`, `LIKE`, `[NOT] IN`**
+
+```sql
+-- IS NULL
+SELECT * FROM funcionarios WHERE comissao IS NULL;
+
+-- LIKE
+SELECT * FROM funcionarios WHERE nome LIKE 'J%';
+
+-- IN
+SELECT * FROM funcionarios WHERE departamento_id IN (10, 20, 30);
+```
+
+---
+
+#### 5. **`[NOT] BETWEEN`**
+
+```sql
+SELECT * FROM funcionarios
+WHERE salario BETWEEN 2000 AND 5000;
+```
+*Seleciona funcionários com salário entre 2000 e 5000 (inclusive).*
+
+---
+
+#### 6. **NOT EQUAL TO (`<>`)**
+
+```sql
+SELECT * FROM funcionarios
+WHERE cargo <> 'Gerente';
+```
+*Seleciona todos os funcionários que não são Gerentes.*
+
+---
+
+#### 7. **NOT (condição lógica)**
+
+```sql
+SELECT * FROM funcionarios
+WHERE NOT (departamento_id = 10);
+```
+*Seleciona funcionários que **não** estão no departamento 10.*
+
+---
+
+#### 8. **AND (condição lógica)**
+
+```sql
+SELECT * FROM funcionarios
+WHERE salario > 2000 AND cargo = 'Analista';
+```
+*Ambas as condições precisam ser verdadeiras.*
+
+---
+
+#### 9. **OR (condição lógica)**
+
+```sql
+SELECT * FROM funcionarios
+WHERE salario > 5000 OR cargo = 'Diretor';
+```
+*Apenas uma das condições precisa ser verdadeira.*
+
+
+Essas regras de precedência são importantes para garantir que as expressões sejam avaliadas na ordem correta, evitando erros de lógica nas consultas.
+
+---
+
+#### Utilizando a cláusula ORDER BY
+
+- Ordene as linhas recuperadas utilizando a cláusula ORDER BY:
+  – ASC: Ordem ascendente, default
+  – DESC: Ordem descendente
+- A cláusula ORDER BY é a última no comando SELECT
+
+
+---
+
+### 📘 Explicações com Exemplos em Oracle SQL
+
+#### 🔹 `ORDER BY`
+
+A cláusula `ORDER BY` é usada para classificar os registros retornados por uma consulta.
+
+---
+
+#### 🟢 `ASC` – Ordem Ascendente (padrão)
+
+Ordena os resultados do menor para o maior (A-Z ou 0-9).
+
+```sql
+SELECT nome, salario
+FROM funcionarios
+ORDER BY salario ASC;
+```
+
+> Ordena os funcionários do menor para o maior salário.
+
+---
+
+#### 🔴 `DESC` – Ordem Descendente
+
+Ordena os resultados do maior para o menor (Z-A ou 9-0).
+
+```sql
+SELECT nome, salario
+FROM funcionarios
+ORDER BY salario DESC;
+```
+
+> Ordena os funcionários do maior para o menor salário.
+
+---
+
+#### ✅ A cláusula `ORDER BY` deve ser **a última** em uma instrução `SELECT`
+
+Isso significa que ela deve vir **depois** de cláusulas como `WHERE`, `GROUP BY` e `HAVING`.
+
+Exemplo com `WHERE`:
+
+```sql
+SELECT nome, salario
+FROM funcionarios
+WHERE departamento_id = 10
+ORDER BY nome;
+```
+
+#### Utilizando Variáveis de Substituição - &
+
+- Utilize uma variável prefixada com um (&) para solicitar um prompt para o usuário digitar um valor
+
+
+---
+
+### 📘 Explicação com Exemplo em Oracle SQL
+
+As variáveis de substituição com `&` são utilizadas no Oracle SQL*Plus (ou ferramentas compatíveis como SQL Developer) para permitir entrada dinâmica de valores.
+
+---
+
+#### 🔹 Como funciona:
+
+Quando você usa `&nome_variavel`, o Oracle solicita que o usuário digite um valor para substituir a variável no momento da execução.
+
+---
+
+#### ✅ Exemplo:
+
+```sql
+SELECT * 
+FROM funcionarios 
+WHERE departamento_id = &departamento;
+```
+
+> Ao executar este comando, será exibido um prompt:  
+`Enter value for departamento:`  
+Se o usuário digitar `10`, o comando executado será:
+
+```sql
+SELECT * 
+FROM funcionarios 
+WHERE departamento_id = 10;
+```
+
+---
+
+#### 🔁 Exemplo com várias variáveis:
+
+```sql
+SELECT * 
+FROM funcionarios 
+WHERE salario BETWEEN &salario_min AND &salario_max;
+```
+
+> O usuário será solicitado a informar dois valores: `salario_min` e `salario_max`.
+
+---
+
+Essas variáveis são muito úteis para **criar scripts reutilizáveis** e **consultas parametrizadas** em ambientes de aprendizado e administração.
+
+---
+
+#### Utilizando Variáveis de Substituição - &&
+
+Utilize `&&` se você deseja reutilizar o valor da variável sem solicitar um prompt para o usuário a cada vez que referenciar a variável:
+
+```sql
+SELECT employee_id, last_name, salary, department_id
+FROM employees
+WHERE employee_id = &&employee_id;
+```
+
+---
+
+### 📘 Explicação sobre `&&` em Oracle SQL
+
+No Oracle SQL (usando ferramentas como SQL*Plus ou Oracle SQL Developer), a variável `&&nome` permite reutilizar o valor digitado uma única vez **sem reexibir o prompt** toda vez que a variável for usada novamente.
+
+---
+
+#### ✅ Exemplo Prático:
+
+```sql
+SELECT employee_id, last_name
+FROM employees
+WHERE employee_id = &&id;
+```
+
+> O Oracle irá solicitar **uma única vez**:  
+`Enter value for id:`  
+Se o usuário digitar `101`, o valor `101` será armazenado na variável `id` e poderá ser reutilizado **em outros comandos subsequentes**, sem solicitar novamente.
+
+---
+
+#### 🔁 Exemplo com Reutilização:
+
+```sql
+SELECT * FROM employees WHERE employee_id = &&id;
+SELECT * FROM job_history WHERE employee_id = &&id;
+```
+
+> Ambos os comandos usarão o mesmo valor digitado para `id`.
+
+---
+
+Isso é especialmente útil para scripts em que o mesmo parâmetro será usado em várias partes, mantendo a entrada do usuário enxuta e eficiente.
+
+```
+-- Variáveis de substituição com valores tipo Character e Date
+
+SELECT last_name, department_id, job_id, salary*12
+FROM employees
+WHERE job_id = '&job_id' ;
+
+```
+
+```
+-- Utilizando o comando DEFINE
+
+DEFINE employee_id = 101
+
+SELECT employee_id, last_name, salary, department_id
+FROM employees
+WHERE employee_id = &employee_id ;
+
+DEFINE employee_id
+
+UNDEFINE employee_id
+```
 
 
 [Voltar ao Índice](#indice)
