@@ -1597,6 +1597,635 @@ Funções Single Row são poderosas, mas devem ser usadas com cuidado para:
 
 ## <a name="parte9">9 - Seção 09: Oracle SQL - Utilizando Funções de Conversão e Expressões Condicionais</a>
 
+- 16 Oracle SQL - Utilizando Funções de Conversão e Expressões Condicionais
+
+[recursos/Seção+9+-+Prática+Aula+1.sql](recursos/Seção+9+-+Prática+Aula+1.sql)
+
+
+#### RESUMO SLIDES AULA
+
+![alt text](img/16_1_tiposConversao.png)
+
+![alt text](img/16_2_tipoDadosDePara.png)
+
+![alt text](img/16_3_conversaoExplicita.png)
+
+#### Utilizando a Função TO_CHAR com Datas
+
+**Sintaxe:**  
+`TO_CHAR(date, 'formato')`  
+
+**Regras do formato:**  
+- Deve ser definido entre aspas simples  
+- É case-sensitive (sensível a maiúsculas/minúsculas)  
+- Pode incluir quaisquer formatos de datas válidos  
+- O prefixo `fm` remove espaços em branco desnecessários ou zeros à esquerda  
+- Deve ser separado do valor da data por vírgula  
+
+**Exemplo Prático Oracle:**  
+```sql
+SELECT 
+    TO_CHAR(SYSDATE, 'fmDD "de" Month YYYY', 'NLS_DATE_LANGUAGE=PORTUGUESE') AS data_formatada
+FROM dual;
+-- Resultado: "15 de Julho 2025" (sem zeros ou espaços extras)
+```
+
+```sql
+-- Utilizando a Função TO_CHAR com Datas
+
+SELECT last_name,TO_CHAR(hire_date, 'DD/MM/YYYY  HH24:MI:SS') DT_ADMISSÂO
+FROM employees;
+
+
+LAST_NAME                 DT_ADMISSÂO         
+------------------------- --------------------
+OConnell                  21/06/2007  00:00:00
+Grant                     13/01/2008  00:00:00
+Whalen                    17/09/2003  00:00:00
+Hartstein                 17/02/2004  00:00:00
+Fay                       17/08/2005  00:00:00
+Mavris                    07/06/2002  00:00:00
+Baer                      07/06/2002  00:00:00
+Higgins                   07/06/2002  00:00:00
+
+
+SELECT sysdate,TO_CHAR(sysdate, 'DD/MM/YYYY  HH24:MI:SS') DATA
+FROM   dual;
+
+YSDATE   DATA                
+--------- --------------------
+03-MAY-25 03/05/2025  16:00:04
+
+
+SELECT last_name, TO_CHAR(hire_date, 'DD, "de" Month "de" YYYY') DT_ADMISSÂO
+FROM employees;
+
+
+LAST_NAME                 DT_ADMISSÂO                                        
+------------------------- ---------------------------------------------------
+OConnell                  21, de June      de 2007                           
+Grant                     13, de January   de 2008                           
+Whalen                    17, de September de 2003                           
+Hartstein                 17, de February  de 2004                           
+Fay                       17, de August    de 2005   
+
+
+SELECT last_name, TO_CHAR(hire_date, 'FMDD, "de" Month "de" YYYY') DT_ADMISSÂO
+FROM employees;
+
+
+LAST_NAME                 DT_ADMISSÂO                                        
+------------------------- ---------------------------------------------------
+OConnell                  21, de June de 2007                                
+Grant                     13, de January de 2008                             
+Whalen                    17, de September de 2003                           
+Hartstein                 17, de February de 2004                            
+Fay                       17, de August de 2005                              
+Mavris                    7, de June de 2002                                 
+Baer                      7, de June de 2002        
+
+```
+
+![alt text](img//16_4_To_CHAR.png)
+
+```sql
+-- Utilizando a Função TO_CHAR com Números
+
+SELECT first_name, last_name, TO_CHAR(salary, 'L99G999G999D99') SALARIO
+FROM employees;
+
+
+FIRST_NAME           LAST_NAME                 SALARIO                 
+-------------------- ------------------------- ------------------------
+Donald               OConnell                                 $2,600.00
+Douglas              Grant                                    $2,600.00
+Jennifer             Whalen                                   $4,400.00
+Michael              Hartstein                               $13,000.00
+Pat                  Fay                                      $6,000.00
+
+SELECT first_name, last_name, TO_CHAR(salary, 'L99G999G999D99') SALARIO
+FROM employees;
+
+
+FIRST_NAME           LAST_NAME                 SALARIO                 
+-------------------- ------------------------- ------------------------
+Donald               OConnell                                 $2,600.00
+Douglas              Grant                                    $2,600.00
+Jennifer             Whalen                                   $4,400.00
+Michael              Hartstein                               $13,000.00
+Pat                  Fay                                      $6,000.00
+```
+
+#### Utilizando a Função TO_NUMBER
+
+**Função de Conversão:**  
+`TO_NUMBER(char[, 'formato'])`  
+
+**Propósito:**  
+Converter uma string de caracteres para um valor numérico.
+
+**Características:**  
+- O parâmetro `char` representa a string a ser convertida  
+- O parâmetro opcional `'formato'` especifica o padrão de formatação numérica  
+- Requer que a string contenha apenas caracteres numéricos válidos  
+
+**Exemplo Prático Oracle:**  
+```sql
+SELECT TO_NUMBER('1.234,56', '9G999D99') AS valor_numérico
+FROM dual;
+-- Converte a string "1.234,56" para o número 1234.56
+```
+
+
+#### Utilizando a Função TO_DATE
+
+**Função de Conversão:**  
+`TO_DATE(char[, 'formato'])`  
+
+**Propósito:**  
+Converter uma string de caracteres para um valor do tipo DATE.
+
+**Características:**  
+- `char`: String contendo a data a ser convertida  
+- `'formato'` (opcional): Especifica o padrão da data na string  
+- Se omitido, usa o formato padrão NLS_DATE_FORMAT  
+
+**Exemplos Oracle:**  
+```sql
+-- Conversão básica
+SELECT TO_DATE('15/07/2025', 'DD/MM/YYYY') FROM dual;
+
+-- Com formato completo
+SELECT TO_DATE('15-Jul-2025 14:30', 'DD-Mon-YYYY HH24:MI') FROM dual;
+
+-- Usando máscara FM para remover espaços extras
+SELECT TO_DATE('15   Jul    2025', 'fmDD Mon YYYY') FROM dual;
+```
+
+**Melhores Práticas:**  
+1. **Sempre especifique o formato** para evitar ambiguidades  
+2. **Use prefixo FM** para strings com espaços inconsistentes  
+3. **Considere NLS_DATE_LANGUAGE** para meses em outros idiomas:  
+
+```sql
+ALTER SESSION SET NLS_DATE_LANGUAGE = 'PORTUGUESE';
+SELECT TO_DATE('15-Julho-2025', 'DD-Month-YYYY') FROM dual;
+```
+
+#### Funções Aninhadas
+
+**Princípio Básico:**
+- Funções single-row podem ser aninhadas em múltiplos níveis
+- A avaliação ocorre de dentro para fora (do nível mais profundo para o mais externo)
+
+**Sintaxe Genérica:**
+```sql
+F3(F2(F1(col, arg1), arg2), arg3)
+```
+
+**Exemplo Prático Oracle:**
+```sql
+-- Exemplo com 3 níveis de aninhamento
+SELECT 
+    UPPER(TO_CHAR(LAST_DAY(ADD_MONTHS(SYSDATE, 3)), 'DD-MON-YYYY')) AS data_processamento
+FROM dual;
+/* Fluxo de execução:
+1. ADD_MONTHS(SYSDATE, 3) → Adiciona 3 meses à data atual
+2. LAST_DAY() → Pega o último dia do mês resultante
+3. TO_CHAR() → Formata como string
+4. UPPER() → Converte para maiúsculas
+*/
+```
+
+**Regras Importantes:**
+1. **Ordem de Execução:** O Oracle sempre resolve primeiro a função mais interna
+2. **Limite de Níveis:** Suporta até ~200 níveis de aninhamento (praticamente ilimitado)
+3. **Legibilidade:** Recomenda-se no máximo 5-7 níveis para manter o código compreensível
+
+**Boas Práticas:**
+```sql
+-- Formato recomendado para aninhamentos complexos
+SELECT
+    RPAD(
+        SUBSTR(
+            INITCAP(nome_cliente),
+            1,
+            10
+        ),
+        15,
+        '.'
+    ) AS nome_formatado
+FROM clientes;
+```
+
+**Aviso:** Evite aninhamentos excessivos que prejudiquem a legibilidade e performance.
+
+#### Funções Genéricas
+
+**Visão Geral:**  
+Funções que operam com qualquer tipo de dado no Oracle Database.
+
+**Principais Funções:**
+
+| Função       | Sintaxe                     | Comportamento                                                                 |
+|--------------|-----------------------------|-------------------------------------------------------------------------------|
+| **NVL**      | `NVL(expr1, expr2)`         | Retorna `expr2` se `expr1` for NULL, caso contrário retorna `expr1`           |
+| **NVL2**     | `NVL2(expr1, expr2, expr3)` | Retorna `expr2` se `expr1` não for NULL, ou `expr3` se `expr1` for NULL       |
+| **NULLIF**   | `NULLIF(expr1, expr2)`      | Retorna NULL se `expr1` = `expr2`, caso contrário retorna `expr1`             |
+| **COALESCE** | `COALESCE(expr1, ..., exprn)`| Retorna o primeiro valor não-NULL na lista de expressões                      |
+
+**Exemplos Práticos:**
+
+```sql
+-- NVL: Substituição simples de NULL
+SELECT nome, NVL(comissao, 0) AS comissao_ajustada FROM vendedores;
+
+-- NVL2: Lógica condicional com NULL
+SELECT produto, NVL2(estoque, 'Disponível', 'Esgotado') AS status FROM produtos;
+
+-- NULLIF: Comparação para retornar NULL
+SELECT NULLIF(salario_atual, salario_anterior) AS diferenca FROM empregados;
+
+-- COALESCE: Primeiro valor não-nulo
+SELECT COALESCE(telefone, celular, email, 'Sem contato') AS contato FROM clientes;
+```
+
+**Características Comuns:**
+- Operam com qualquer tipo de dados (NUMBER, VARCHAR2, DATE, etc.)
+- Todas tratam valores NULL de forma específica
+- Podem ser aninhadas com outras funções
+- Essenciais para tratamento de dados incompletos
+
+**Melhor Prática:**  
+Use `COALESCE` em vez de múltiplos `NVL` aninhados para maior clareza:
+
+```sql
+-- Em vez de:
+SELECT NVL(col1, NVL(col2, NVL(col3, 'padrão'))) FROM tabela;
+
+-- Prefira:
+SELECT COALESCE(col1, col2, col3, 'padrão') FROM tabela;
+```
+
+#### Utilizando a Função COALESCE
+
+**Comportamento:**
+- Aceita múltiplos argumentos (2 ou mais expressões)
+- Retorna o **primeiro valor não-NULL** na lista de expressões
+- Se todas as expressões forem NULL, retorna NULL
+
+**Fluxo de Avaliação:**
+1. Avalia a primeira expressão:
+   - Se **não for NULL**, retorna este valor (interrompe a avaliação)
+   - Se for NULL, passa para a próxima expressão
+2. Repete o processo até encontrar um valor não-NULL ou esgotar os argumentos
+
+**Exemplo Prático Oracle:**
+```sql
+-- Retorna o primeiro valor não-nulo encontrado:
+SELECT 
+    COALESCE(telefone_residencial, 
+             telefone_celular, 
+             telefone_comercial, 
+             'Nenhum contato disponível') AS contato_prioritario
+FROM clientes;
+```
+
+**Caso Especial:**
+```sql
+-- Se todos forem NULL, retorna NULL (a menos que haja um valor padrão final)
+SELECT COALESCE(NULL, NULL, NULL) FROM dual;  -- Retorna NULL
+```
+
+**Vantagens:**
+- Mais elegante que múltiplos NVL aninhados
+- Avaliação curto-circuito (otimizada)
+- Pode ser usada com qualquer tipo de dado
+
+**Comparação NVL vs COALESCE:**
+```sql
+-- Equivalência funcional:
+SELECT NVL(col1, NVL(col2, 'padrão')) FROM tabela;  -- Com NVL aninhado
+SELECT COALESCE(col1, col2, 'padrão') FROM tabela;   -- Mais limpo com COALESCE
+```
+
+#### Utilizando a Função NVL2
+
+**Sintaxe:**  
+```sql
+  NVL2(expressão_avaliada, valor_se_nao_null, valor_se_null)
+```
+
+**Funcionamento:**  
+- Avalia a `expressão_avaliada`:
+  - Se **NÃO for NULL**, retorna `valor_se_nao_null`
+  - Se **for NULL**, retorna `valor_se_null`
+
+**Exemplo da Imagem:**
+```sql
+SELECT 
+    last_name, 
+    salary, 
+    commission_pct,
+    NVL2(commission_pct, 10, 0) AS PERCENTUAL_ATERADO
+FROM employees;
+```
+
+**Resultado Esperado:**
+- Para funcionários COM comissão (`commission_pct` ≠ NULL): retorna `10`
+- Para funcionários SEM comissão (`commission_pct` = NULL): retorna `0`
+
+**Exemplo Adicional:**
+```sql
+-- Aplicando aumento condicional
+SELECT 
+    product_name,
+    price,
+    NVL2(discount, price * 0.9, price) AS preco_final
+FROM products;
+```
+
+**Vantagens:**
+- Mais conciso que `CASE WHEN expressão IS NOT NULL THEN ... ELSE ... END`
+- Funciona com qualquer tipo de dado no Oracle
+- Avaliação de único passe (melhor performance)
+
+#### Utilizando a Função NULLIF
+
+**Sintaxe:**  
+```sql
+NULLIF(expressão1, expressão2)
+```
+
+**Comportamento:**  
+- Compara os dois argumentos:
+  - Se **forem iguais**, retorna `NULL`
+  - Se **diferentes**, retorna o valor da primeira expressão (`expressão1`)
+
+**Exemplo da Imagem:**
+```sql
+SELECT 
+    NULLIF(1000, 1000),  -- Retorna NULL (valores iguais)
+    NULLIF(1000, 2000)   -- Retorna 1000 (valores diferentes)
+FROM dual;
+```
+
+**Saída Esperada:**
+```
+NULL    1000
+```
+
+**Casos de Uso Comuns:**
+1. **Evitar divisão por zero:**
+```sql
+SELECT valor / NULLIF(total, 0) AS porcentagem FROM métricas;
+```
+
+2. **Identificar mudanças:**
+```sql
+SELECT 
+    produto_id,
+    NULLIF(preço_atual, preço_anterior) AS alteração_preço
+FROM produtos;
+```
+
+**Regras Importantes:**
+- Ambos os argumentos devem ser do mesmo tipo de dado
+- Frequentemente usada com funções de agregação
+- Alternativa mais elegante que `CASE WHEN expr1 = expr2 THEN NULL ELSE expr1 END`
+
+**Exemplo Avançado:**
+```sql
+SELECT 
+    cliente_id,
+    NULLIF(TO_CHAR(última_compra, 'YYYY-MM'), 
+          TO_CHAR(SYSDATE, 'YYYY-MM')) AS meses_com_compra
+FROM clientes;
+```
+
+#### Expressões Condicionais
+
+**Função:**  
+Permitem implementar lógica condicional (IF-THEN-ELSE) diretamente em consultas SQL.
+
+**Métodos Disponíveis:**
+
+1. **Expressão CASE** (Padrão ANSI SQL)
+   
+```sql
+CASE 
+    WHEN condição1 THEN resultado1
+    WHEN condição2 THEN resultado2
+    ...
+    ELSE resultado_padrão
+END
+```
+
+2. **Expressão DECODE** (Específico do Oracle)
+```sql
+DECODE(coluna, 
+      valor1, resultado1,
+      valor2, resultado2,
+      ...,
+      resultado_padrão)
+```
+
+**Exemplo Prático:**
+
+```sql
+-- Usando CASE
+SELECT nome,
+       CASE
+           WHEN salario > 10000 THEN 'Alto'
+           WHEN salario > 5000 THEN 'Médio'
+           ELSE 'Baixo'
+       END AS faixa_salarial
+FROM empregados;
+
+-- Usando DECODE
+SELECT produto,
+       DECODE(categoria,
+              'E', 'Eletrônico',
+              'V', 'Vestuário',
+              'Outros') AS tipo_produto
+FROM produtos;
+```
+
+**Principais Diferenças:**
+| **CASE** | **DECODE** |
+|----------|------------|
+| Padrão ANSI | Exclusivo Oracle |
+| Aceita condições complexas | Comparações diretas de igualdade |
+| Mais legível para múltiplas condições | Mais compacto para comparações simples |
+
+**Melhor Prática:**  
+Prefira `CASE` para condições complexas e `DECODE` para comparações simples de igualdade.
+
+
+
+
+
+
+#### RESUMO GERAL COM AI - DEEPSEEK
+
+
+### Visão Geral
+Funções de conversão transformam dados entre tipos (texto, número, data), enquanto expressões condicionais permitem lógica condicional diretamente no SQL.
+
+---
+
+## 1. Funções de Conversão (Principais)
+
+### TO_CHAR()
+Converte números/datas para texto com formatação:
+
+```sql
+-- Data para texto
+SELECT TO_CHAR(SYSDATE, 'DD/MM/YYYY HH24:MI:SS') FROM dual;
+
+-- Número para texto formatado
+SELECT TO_CHAR(1234.56, 'L999G999D99') FROM dual; -- Ex: "R$1.234,56"
+```
+
+### TO_NUMBER()
+Converte texto para número:
+
+```sql
+SELECT TO_NUMBER('1.234,56', '9G999D99') FROM dual;
+```
+
+### TO_DATE()
+Converte texto para data:
+
+```sql
+SELECT TO_DATE('15/03/2025', 'DD/MM/YYYY') FROM dual;
+```
+
+---
+
+## 2. Expressões Condicionais
+
+### CASE (Padrão ANSI)
+```sql
+SELECT nome,
+       CASE 
+          WHEN salario > 10000 THEN 'Alto'
+          WHEN salario > 5000 THEN 'Médio'
+          ELSE 'Baixo'
+       END AS categoria_salario
+FROM empregados;
+```
+
+### DECODE (Específico Oracle)
+```sql
+SELECT nome,
+       DECODE(uf, 
+              'SP', 'Paulista',
+              'RJ', 'Carioca',
+              'Outro') AS naturalidade
+FROM clientes;
+```
+
+---
+
+## Exemplos Complexos
+
+### Combinação de Funções
+```sql
+SELECT TO_CHAR(
+         ADD_MONTHS(
+           TO_DATE('15/' || mes || '/' || ano, 'DD/MM/YYYY'),
+           6
+         ), 'Month YYYY'
+       ) AS data_projetada
+FROM tabela_temporal;
+```
+
+### Expressão Condicional com Agregação
+```sql
+SELECT departamento,
+       COUNT(*) AS total,
+       SUM(CASE WHEN salario > 5000 THEN 1 ELSE 0 END) AS acima_media
+FROM empregados
+GROUP BY departamento;
+```
+
+---
+
+## Melhores Práticas ✅
+
+1. **Sempre especifique formato em conversões**:
+   ```sql
+   -- Bom
+   SELECT TO_DATE('15-03-2025', 'DD-MM-YYYY') FROM dual;
+   ```
+
+2. **Use CASE para lógica complexa** (mais legível que DECODE):
+   ```sql
+   CASE WHEN status = 'A' AND salario > 1000 THEN ... END
+   ```
+
+3. **Trate valores nulos explicitamente**:
+   ```sql
+   SELECT NVL(TO_CHAR(comissao, '999D99'), '0,00') FROM vendedores;
+   ```
+
+---
+
+## Piores Práticas ❌ (Evitar)
+
+1. **Conversão implícita** (pode causar erros):
+   ```sql
+   -- Ruim (depende da configuração do banco)
+   SELECT * FROM pedidos WHERE data = '15/03/2025';
+   ```
+
+2. **Aninhamento excessivo de DECODE**:
+   ```sql
+   -- Difícil manutenção
+   DECODE(col1, 'A', DECODE(col2, 'X', 1, 0), 0)
+   ```
+
+3. **Ignorar localidade em formatos**:
+   ```sql
+   -- Pode falhar em outros ambientes
+   SELECT TO_NUMBER('1.234,56') FROM dual;
+   ```
+
+4. **Usar conversões em colunas indexadas**:
+   ```sql
+   -- Evite (invalida índices)
+   SELECT * FROM clientes WHERE TO_CHAR(data_cadastro, 'YYYY') = '2025';
+   ```
+
+---
+
+## Exemplo Completo (Boas Práticas)
+
+```sql
+-- Relatório formatado com tratamento de nulos e localização
+SELECT 
+    nome,
+    TO_CHAR(data_nascimento, 'DD "de" Month YYYY', 
+           'NLS_DATE_LANGUAGE=PORTUGUESE') AS nascimento_br,
+    CASE
+        WHEN meses_servico > 120 THEN 'Sênior'
+        WHEN meses_servico > 60 THEN 'Pleno'
+        ELSE 'Júnior'
+    END AS senioridade,
+    NVL(TO_CHAR(comissao, 'L999G990D00', 'NLS_NUMERIC_CHARACTERS='',.'''), 
+        'Sem comissão') AS comissao_formatada
+FROM vendedores
+WHERE TO_DATE(data_contrato, 'DD/MM/YYYY') > ADD_MONTHS(SYSDATE, -24);
+```
+
+---
+
+## Conclusão
+- Funções de conversão garantem integridade dos tipos de dados
+- Expressões condicionais trazem lógica para consultas SQL
+- Sempre prefira formatação explícita e tratamento de erros
+- Documente conversões complexas para manutenção futura
 
 
 [Voltar ao Índice](#indice)
