@@ -1221,6 +1221,373 @@ UNDEFINE employee_id
 
 ## <a name="parte8">8 - Seção 08: Oracle SQL - Utilizando Funções Single Row</a>
 
+- 15. Oracle SQL - Utilizando Funções Single Row
+
+- [recursos/Seção+8+-+Prática+Aula+1.sql](/recursos/Seção+8+-+Prática+Aula+1.sql)
+
+### Resumo dos Slides da Aula
+
+![img/15_1_func_singleRow.png](/img/15_1_func_singleRow.png)
+
+![img/15_2_tipos_func.png](/img/15_2_tipos_func.png)
+
+#### Funções SQL Single Row
+
+#### Características:
+- Podem manipular itens de dados  
+- Receber argumentos e retornar um valor  
+- Atuam sobre cada linha retornada  
+- Retornam um resultado por linha  
+- Podem modificar o tipo de dado  
+- Podem ser aninhadas  
+- Recebem argumentos que podem ser colunas ou expressões  
+
+![alt text](img/15_3_tipos_func.png)
+
+![alt text](/img/15_4_tipos_character.png)
+
+![alt text](/img/15_5_func-maiu_minu.png)
+
+```sql
+-- Funções de conversão Maiúsculo & Minúsculo
+
+SELECT employee_id, last_name, department_id
+FROM employees
+WHERE last_name = 'KING';
+
+SELECT employee_id, last_name, department_id
+FROM employees
+WHERE UPPER(last_name) = 'KING';
+```
+
+![alt text](/img/15_6_func_man_carac.png)
+
+```sql
+-- Funções de Manipulação de Caracteres
+
+SELECT CONCAT(' Curso: ','Introdução ORACLE 19c'), SUBSTR('Introdução ORACLE 19c',1,11),
+       LENGTH('Introdução ORACLE 19c'), INSTR('Introdução ORACLE 19c','ORACLE')
+FROM dual;
+```
+
+![alt text](/img/15_7_func_caracter.png)
+
+```sql
+SELECT first_name "Nome", LPAD(first_name, 20, ' ') "Nome alinhado a direita", RPAD(first_name, 20, ' ') "Nome alinhado a esquerda"
+FROM   employees;
+
+SELECT job_title, REPLACE(job_title, 'President', 'Presidente') CARGO
+FROM jobs
+WHERE  job_title = 'President';
+```
+
+#### Funções tipo NUMBER
+
+- **ROUND**: Arredonda o valor para a casa decimal especificada  
+- **TRUNC**: Trunca o valor para a casa decimal especificada  
+- **MOD**: Retorna o resto da divisão  
+
+```sql
+SELECT ROUND(45.923,2), ROUND(45.923,0)
+FROM dual;
+
+
+ROUND(45.923,2) ROUND(45.923,0)
+--------------- ---------------
+          45.92              46
+
+
+SELECT TRUNC(45.923,2), TRUNC(45.923,0)
+FROM dual;
+
+
+TRUNC(45.923,2) TRUNC(45.923,0)
+--------------- ---------------
+          45.92              45
+
+
+SELECT MOD(1300,600) RESTO
+FROM dual;
+
+
+     RESTO
+----------
+       100
+
+```
+
+![alt text](/img/15_8_funcTipoNumber.png)
+
+```sql
+SELECT ABS(-9), SQRT(9)
+FROM dual;
+
+
+   ABS(-9)    SQRT(9)
+---------- ----------
+         9          3
+
+```
+
+#### Funções tipo DATE - Trabalhando com Datas
+
+- O format default de exibição de datas é definido pelo DBA através do parâmetro NLS_DATE_FORMAT  
+- No Brasil normalmente o formato default de exibição de datas é definido para ‘DD/MM/YY’ ou ‘DD/MM/RR’
+
+```sql
+-- Funções tipo DATE 
+
+SELECT sysdate
+FROM dual;
+
+DESC dual
+
+SELECT *
+FROM dual;
+
+SELECT 30000 * 1.25
+FROM dual;
+
+```
+
+#### Cálculos com Datas
+
+- Uma vez que o banco de dados armazena datas como números, você pode executar cálculos utilizando os operadores aritméticos como a adição e subtração.
+
+![alt text](/img/15_9_calculaDatas.png)
+
+```sql
+SELECT sysdate, sysdate + 30, sysdate + 60, sysdate - 30
+FROM dual;
+
+SYSDATE   SYSDATE+3 SYSDATE+6 SYSDATE-3
+--------- --------- --------- ---------
+03-MAY-25 02-JUN-25 02-JUL-25 03-APR-25
+
+
+SELECT last_name, ROUND((SYSDATE-hire_date)/7,2) "SEMANAS DE TRABALHO'"
+FROM employees;
+
+LAST_NAME                 SEMANAS DE TRABALHO'
+------------------------- --------------------
+OConnell                                932.34
+Grant                                   902.91
+Whalen                                 1128.48
+Hartstein                              1106.63
+Fay                                    1028.48
+Mavris                                  1195.2
+Baer                                    1195.2
+Higgins                                 1195.2
+Gietz                                   1195.2
+King                                   1141.63
+Kochhar                                1023.48
+
+```
+
+#### Outras Funções tipo DATE
+
+| **Função**         | **Resultado**                          |
+|--------------------|----------------------------------------|
+| MONTHS_BETWEEN     | Número de meses entre duas datas       |
+| ADD_MONTHS         | Adiciona meses a uma data              |
+| NEXT_DAY           | Próximo dia relativo a data especificada |
+| LAST_DAY           | Último dia do mês                      |
+| ROUND              | Arredonda a data                       |
+| TRUNC              | Trunca a data                          |
+
+```sql
+SELECT first_name, last_name, ROUND(MONTHS_BETWEEN(sysdate, hire_date),2) "MESES DE TRABALHO"
+FROM employees;
+
+--ERRO
+SELECT SYSDATE, ADD_MONTHS(SYSDATE, 3), NEXT_DAY(SYSDATE,'SEXTA FEIRA'), LAST_DAY(SYSDATE)
+FROM   dual;
+
+SELECT SYSDATE, ADD_MONTHS(SYSDATE, 3), NEXT_DAY(SYSDATE,'FRIDAY'), LAST_DAY(SYSDATE)
+FROM dual;
+
+ALTER SESSION SET NLS_LANGUAGE = 'PORTUGUESE';
+SELECT SYSDATE, ADD_MONTHS(SYSDATE, 3), NEXT_DAY(SYSDATE,'SEXTA-FEIRA'), LAST_DAY(SYSDATE)
+FROM dual;
+```
+
+![alt text](/img/15_10_funcDate.png)
+
+
+```sql
+
+SELECT sysdate, ROUND(SYSDATE, 'MONTH'), ROUND(SYSDATE, 'YEAR'), 
+       TRUNC(SYSDATE, 'MONTH'), TRUNC(SYSDATE, 'YEAR')
+FROM   dual;
+       
+SELECT SYSDATE, TO_CHAR(TRUNC(SYSDATE),'DD/MM/YYYY HH24:MI:SS')
+FROM  dual;
+
+
+```
+
+
+
+
+### Resumo AI- DEEPSEEAK
+
+# Resumo: Oracle SQL - Funções Single Row
+
+## Visão Geral
+Funções Single Row (ou funções de linha única) operam em uma única linha por vez e retornam um resultado para cada linha processada. Elas são usadas para manipular dados, realizar cálculos e formatar resultados.
+
+---
+
+## Tipos e Exemplos de Funções Single Row
+
+### 1. Funções de Caractere
+- **UPPER()**: Converte para maiúsculas
+  ```sql
+  SELECT UPPER(nome) FROM clientes;
+  ```
+- **LOWER()**: Converte para minúsculas
+  ```sql
+  SELECT LOWER(descricao) FROM produtos;
+  ```
+- **INITCAP()**: Primeira letra maiúscula
+  ```sql
+  SELECT INITCAP('oracle database') FROM dual; -- Retorna "Oracle Database"
+  ```
+
+### 2. Funções Numéricas
+- **ROUND()**: Arredondamento
+  ```sql
+  SELECT ROUND(123.456, 2) FROM dual; -- Retorna 123.46
+  ```
+- **TRUNC()**: Truncamento
+  ```sql
+  SELECT TRUNC(123.456, 1) FROM dual; -- Retorna 123.4
+  ```
+- **MOD()**: Módulo (resto da divisão)
+  ```sql
+  SELECT MOD(10, 3) FROM dual; -- Retorna 1
+  ```
+
+### 3. Funções de Data
+- **SYSDATE**: Data/hora atual
+  ```sql
+  SELECT SYSDATE FROM dual;
+  ```
+- **TO_CHAR()**: Formatação de data
+  ```sql
+  SELECT TO_CHAR(SYSDATE, 'DD/MM/YYYY HH24:MI') FROM dual;
+  ```
+- **MONTHS_BETWEEN()**: Diferença em meses
+  ```sql
+  SELECT MONTHS_BETWEEN('01-JAN-2025', '01-MAR-2024') FROM dual;
+  ```
+
+### 4. Funções de Conversão
+- **TO_NUMBER()**: Converte para número
+  ```sql
+  SELECT TO_NUMBER('1234') FROM dual;
+  ```
+- **TO_DATE()**: Converte para data
+  ```sql
+  SELECT TO_DATE('10/05/2025', 'DD/MM/YYYY') FROM dual;
+  ```
+
+### 5. Funções Condicionais
+- **NVL()**: Substitui valores nulos
+  ```sql
+  SELECT NVL(comissao, 0) FROM vendedores;
+  ```
+- **DECODE()**: Condicional simples
+  ```sql
+  SELECT DECODE(status, 'A', 'Ativo', 'I', 'Inativo', 'Desconhecido') FROM usuarios;
+  ```
+
+---
+
+## Melhores Práticas
+
+1. **Use aliases para melhor legibilidade**
+   ```sql
+   SELECT UPPER(nome) AS nome_maiusculo FROM clientes;
+   ```
+
+2. **Evite funções em colunas indexadas em WHERE** (pode impedir uso de índices)
+   ```sql
+   -- RUIM (não usa índice na coluna nome)
+   SELECT * FROM clientes WHERE UPPER(nome) = 'JOÃO';
+   
+   -- MELHOR (considerar armazenar já em maiúsculas ou usar índice function-based)
+   ```
+
+3. **Documente conversões complexas**
+   ```sql
+   -- Formata CPF (documentar o padrão)
+   SELECT REGEXP_REPLACE(cpf, '(\d{3})(\d{3})(\d{3})(\d{2})', '\1.\2.\3-\4') AS cpf_formatado
+   FROM clientes;
+   ```
+
+4. **Trate NULLs explicitamente**
+   ```sql
+   SELECT NVL(telefone, 'Sem telefone') AS contato FROM clientes;
+   ```
+
+---
+
+## Piores Práticas (Evitar)
+
+1. **Aninhamento excessivo de funções**
+   ```sql
+   -- Difícil de ler e manter
+   SELECT TO_CHAR(LAST_DAY(ADD_MONTHS(SYSDATE, 3)), 'DD-MM-YYYY') FROM dual;
+   ```
+
+2. **Ignorar localidade em conversões**
+   ```sql
+   -- Pode falhar em ambientes com configuração diferente
+   SELECT TO_DATE('01/02/2025', 'MM/DD/YYYY') FROM dual;
+   ```
+
+3. **Usar funções em JOINs sem necessidade**
+   ```sql
+   -- Performance ruim
+   SELECT * FROM tabela1 t1
+   JOIN tabela2 t2 ON UPPER(t1.chave) = UPPER(t2.chave);
+   ```
+
+4. **Não tratar erros em conversões**
+   ```sql
+   -- Pode causar erro se houver valores não numéricos
+   SELECT TO_NUMBER(codigo) FROM produtos;
+   
+   -- MELHOR: Usar tratamento de erro ou VALIDATE_CONVERSION no Oracle 12c+
+   ```
+
+---
+
+## Exemplo Complexo Combinado
+
+```sql
+-- Formata endereço completo com tratamento de nulos
+SELECT 
+    id_cliente,
+    INITCAP(nome) || ' - ' ||
+    NVL2(complemento, 
+         RTRIM(endereco) || ', ' || INITCAP(complemento), 
+         RTRIM(endereco)) || ', ' ||
+    INITCAP(cidade) || '/' || UPPER(uf) AS endereco_completo,
+    TO_CHAR(data_cadastro, 'DD "de" Month YYYY', 'NLS_DATE_LANGUAGE=PORTUGUESE') AS data_cadastro_br
+FROM clientes
+WHERE MONTHS_BETWEEN(SYSDATE, data_nascimento)/12 > 18;
+```
+
+---
+
+## Conclusão
+Funções Single Row são poderosas, mas devem ser usadas com cuidado para:
+- Manter a legibilidade do código
+- Não comprometer a performance
+- Garantir consistência dos resultados
+
 
 
 [Voltar ao Índice](#indice)
