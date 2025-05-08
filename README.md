@@ -2235,6 +2235,463 @@ WHERE TO_DATE(data_contrato, 'DD/MM/YYYY') > ADD_MONTHS(SYSDATE, -24);
 
 ## <a name="parte10">10 - Seção 10: Oracle SQL - Agregando dados utilizando Funções de Grupo</a>
 
+### 17 Oracle SQL - Agregando dados utilizando Funções de Grupo
+
+- [Seção+10+-+Prática+Aula+1.sql](/recursos/Seção+10+-+Prática+Aula+1.sql)
+
+#### Principais Funções de Grupo
+
+- **AVG** - Calcula a média de valores  
+- **COUNT** - Conta o número de linhas ou valores não nulos  
+- **MAX** - Retorna o valor máximo  
+- **MIN** - Retorna o valor mínimo  
+- **SUM** - Soma todos os valores  
+- **STDDEV** - Calcula o desvio padrão  
+- **VARIANCE** - Calcula a variância estatística  
+
+**Exemplo Básico Oracle:**
+```sql
+SELECT 
+    AVG(salario) AS media_salarial,
+    COUNT(*) AS total_funcionarios,
+    MAX(data_admissao) AS ultima_admissao,
+    MIN(salario) AS menor_salario,
+    SUM(vendas) AS total_vendas,
+    STDDEV(comissao) AS desvio_comissao,
+    VARIANCE(notas) AS variancia_avaliacoes
+FROM empregados;
+```
+
+**Observações:**
+1. Todas as funções ignoram valores NULL (exceto COUNT(*))
+2. Podem ser combinadas com GROUP BY para análise por grupos
+3. STDDEV e VARIANCE são particularmente úteis para análise estatística
+
+#### Utilizando as Funções AVG e SUM
+
+**Características:**
+- Operam exclusivamente com dados numéricos
+- Ignoram valores NULL nos cálculos
+- Podem ser usadas com cláusulas GROUP BY para análise segmentada
+
+**Exemplos Oracle:**
+
+```sql
+-- Cálculo básico
+SELECT 
+    AVG(salario) AS média_salarial,
+    SUM(vendas) AS total_vendas
+FROM funcionarios;
+
+-- Com filtros e agrupamento
+SELECT 
+    departamento,
+    AVG(salario) AS média_dept,
+    SUM(horas_extras) AS total_horas_extras
+FROM empregados
+WHERE data_contratacao > TO_DATE('01/01/2023', 'DD/MM/YYYY')
+GROUP BY departamento;
+```
+
+**Diferenças Chave:**
+| Função | Descrição | Comportamento com NULL |
+|--------|-----------|------------------------|
+| `AVG()` | Calcula média aritmética | Ignora valores NULL |
+| `SUM()` | Soma valores | Ignora valores NULL |
+
+**Melhor Prática:**
+```sql
+-- Use ROUND com AVG para controle de casas decimais
+SELECT 
+    departamento,
+    ROUND(AVG(salario), 2) AS média_formatada
+FROM empregados
+GROUP BY departamento;
+```
+
+```sql
+SELECT AVG(salary), SUM(salary) FROM   employees;
+
+AVG(SALARY) SUM(SALARY)
+----------- -----------
+ 6461.83178      691416
+```
+
+#### Utilizando as Funções MIN e MAX
+
+**Características:**
+- Operam com diversos tipos de dados:
+  - Numéricos
+  - Caracteres (texto)
+  - Datas
+- Ignoram valores NULL nos cálculos
+
+**Exemplos Oracle:**
+
+```sql
+-- Com números
+SELECT 
+    MIN(preco) AS menor_preco,
+    MAX(estoque) AS maior_estoque
+FROM produtos;
+
+-- Com texto (ordem alfabética)
+SELECT 
+    MIN(nome) AS primeiro_alfabetico,
+    MAX(nome) AS ultimo_alfabetico
+FROM clientes;
+
+-- Com datas
+SELECT 
+    MIN(data_admissao) AS primeira_admissao,
+    MAX(data_nascimento) AS mais_novo
+FROM empregados;
+```
+
+**Comportamento por Tipo de Dado:**
+| Tipo      | MIN Retorna | MAX Retorna |
+|-----------|-------------|-------------|
+| Numérico  | Menor valor | Maior valor |
+| Texto     | Primeiro na ordem alfabética | Último na ordem alfabética |
+| Data      | Data mais antiga | Data mais recente |
+
+**Melhor Prática:**
+```sql
+-- Combine com TO_CHAR para formatar datas
+SELECT 
+    TO_CHAR(MIN(data_venda), 'DD/MM/YYYY') AS primeira_venda,
+    TO_CHAR(MAX(data_venda), 'DD/MM/YYYY') AS ultima_venda
+FROM vendas;
+```
+
+```sql
+-- Utilizando as Funções MIN e MAX
+
+SELECT MIN(hire_date), MAX(hire_date)
+FROM   employees;
+
+MIN(HIRE_ MAX(HIRE_
+--------- ---------
+13-JAN-01 21-APR-08
+
+
+SELECT MIN(salary), MAX(salary)
+FROM   employees;
+
+MIN(SALARY) MAX(SALARY)
+----------- -----------
+       2100       24000
+```
+
+#### Utilizando a Função COUNT
+
+**Comportamento:**
+- `COUNT(*)` retorna o número total de linhas na tabela ou grupo (inclui NULLs e duplicatas)
+
+**Exemplos Oracle:**
+
+```sql
+-- Contagem total de registros
+SELECT COUNT(*) AS total_clientes FROM clientes;
+
+-- Com filtro WHERE
+SELECT COUNT(*) FROM pedidos WHERE status = 'FATURADO';
+
+-- Com GROUP BY
+SELECT departamento, COUNT(*) AS qtd_funcionarios
+FROM empregados
+GROUP BY departamento;
+```
+
+**Variações Importantes:**
+1. `COUNT(*)` - Conta todas as linhas
+2. `COUNT(coluna)` - Conta apenas valores não-NULL na coluna especificada
+3. `COUNT(DISTINCT coluna)` - Conta valores únicos não-NULL
+
+**Exemplo Prático:**
+```sql
+SELECT 
+    COUNT(*) AS total_registros,
+    COUNT(telefone) AS com_telefone,
+    COUNT(DISTINCT cidade) AS cidades_unicas
+FROM clientes;
+```
+
+**Melhor Prática:**
+- Use `COUNT(1)` como alternativa mais eficiente a `COUNT(*)` em algumas versões do Oracle
+- Para contagem de valores distintos, sempre use `COUNT(DISTINCT coluna)`
+
+
+
+```sql
+-- Utilizando a Função COUNT
+
+SELECT COUNT(*)
+FROM   employees;
+
+  COUNT(*)
+----------
+       107
+
+SELECT COUNT(commission_pct)
+FROM   employees;
+
+COUNT(COMMISSION_PCT)
+---------------------
+                   35
+
+SELECT COUNT(commission_pct), COUNT(*)
+FROM employees;
+
+
+COUNT(COMMISSION_PCT)   COUNT(*)
+--------------------- ----------
+                   35        107
+
+
+SELECT COUNT(NVL(commission_pct,0))
+FROM employees;
+
+COUNT(NVL(COMMISSION_PCT,0))
+----------------------------
+                         107
+
+
+-- Utilizando a Função COUNT com DISTINCT
+
+SELECT COUNT(DISTINCT department_id)
+FROM   employees;
+
+COUNT(DISTINCTDEPARTMENT_ID)
+----------------------------
+                          11
+
+SELECT COUNT(department_id)
+FROM   employees;
+
+COUNT(DEPARTMENT_ID)
+--------------------
+                 106
+```
+
+#### Funções de Grupo e valores NULOS
+
+**Comportamento Fundamental:**
+- Todas as funções de grupo **ignoram automaticamente** valores NULL em seus cálculos
+
+**Exceção Notável:**
+```sql
+COUNT(*)  -- Conta TODAS as linhas, inclusive as com NULL
+```
+
+**Exemplos Oracle:**
+
+```sql
+-- AVG ignora NULLs no cálculo da média
+SELECT AVG(comissao) FROM vendedores;  -- Soma apenas valores não-nulos
+
+-- SUM não considera NULLs
+SELECT SUM(bonus) FROM funcionarios;   -- NULLs são tratados como zero na soma
+
+-- COUNT(coluna) exclui NULLs
+SELECT COUNT(email) FROM clientes;     -- Conta apenas emails válidos
+```
+
+**Comparação de Comportamento:**
+
+| Função   | Tratamento de NULL       | Exemplo Resultado |
+|----------|--------------------------|-------------------|
+| `AVG()`  | Ignorado                 | `(10+20)/2 = 15` (se um valor for NULL) |
+| `COUNT(*)` | Inclui linhas com NULL  | Conta todas as linhas da tabela |
+| `MAX()`  | Ignorado                 | Retorna o maior valor não-NULL |
+
+**Melhor Prática:**
+
+```sql
+-- Use NVL para substituir NULLs quando necessário
+SELECT AVG(NVL(comissao, 0)) FROM vendedores;  -- Trata NULL como zero
+```
+
+```sql
+-- Funções de Grupo e valores NULOS
+
+SELECT AVG(commission_pct)
+FROM   employees;
+
+
+AVG(COMMISSION_PCT)
+-------------------
+         .222857143
+
+-- Tratamento de NULOS em Funções de Grupo 
+
+SELECT AVG(NVL(commission_pct, 0))
+FROM   employees;
+
+AVG(NVL(COMMISSION_PCT,0))
+--------------------------
+               .0728971963
+```
+
+### 18 Oracle SQL - Criando e Selecionando Grupos
+
+- [Seção+10+-+Prática+Aula+2.sql](/recursos/Seção+10+-+Prática+Aula+2.sql)
+
+
+#### Criando Grupos utilizando a Cláusula GROUP BY
+
+**Sintaxe Básica:**
+```sql
+SELECT coluna, função_grupo(coluna)  
+FROM tabela  
+[WHERE condição]  
+[GROUP BY expressão_group_by]  
+[ORDER BY coluna];
+```
+
+**Exemplo Prático Oracle:**
+```sql
+-- Agrupamento simples
+SELECT 
+    departamento, 
+    AVG(salario) AS media_salarial
+FROM empregados
+GROUP BY departamento;
+
+-- Com múltiplas colunas e filtro
+SELECT 
+    departamento,
+    cargo,
+    COUNT(*) AS quantidade
+FROM empregados
+WHERE data_contratacao > TO_DATE('01/01/2023', 'DD/MM/YYYY')
+GROUP BY departamento, cargo
+ORDER BY departamento;
+```
+
+**Regras Essenciais:**
+1. Todas as colunas não-agregadas no SELECT devem estar no GROUP BY
+2. A cláusula WHERE filtra linhas **antes** do agrupamento
+3. Use ORDER BY para ordenar os resultados finais
+
+**Cenário Complexo:**
+```sql
+-- Agrupamento com JOIN e função de data
+SELECT 
+    TO_CHAR(v.data_venda, 'YYYY-MM') AS mes_venda,
+    p.categoria,
+    SUM(v.valor) AS total_vendas,
+    COUNT(DISTINCT v.cliente_id) AS clientes_ativos
+FROM vendas v
+JOIN produtos p ON v.produto_id = p.id
+GROUP BY TO_CHAR(v.data_venda, 'YYYY-MM'), p.categoria
+HAVING SUM(v.valor) > 10000
+ORDER BY mes_venda;
+```
+
+**Boas Práticas:**
+- Liste colunas do GROUP BY na mesma ordem do SELECT
+- Use aliases para melhor legibilidade
+- Para filtros pós-agrupação, use HAVING em vez de WHERE
+
+#### Sequência Lógica
+
+1. WHERE – Selecionar as linhas a serem recuperadas  
+2. GROUP BY – Formar os grupos *  
+3. HAVING – Selecionar os grupos a serem recuperados  
+4. Exibir colunas ou expressões do SELECT ordenando pelo critério definido no ORDER BY  
+
+#### Utilizando a Cláusula GROUP BY
+
+- Se o comando SELECT utiliza Grupos, então todas as colunas ou expressões na lista da cláusula SELECT que não estão em uma Função de Grupo devem estar na cláusula GROUP BY
+
+```sql
+
+-- Utilizando a clásula Group by com mais de uma Coluna ou Expressão
+
+SELECT department_id, job_id, SUM(salary)
+FROM employees
+GROUP BY department_id, job_id
+ORDER BY department_id, job_id;
+
+DEPARTMENT_ID JOB_ID     SUM(SALARY)
+------------- ---------- -----------
+           10 AD_ASST           4400
+           20 MK_MAN           13000
+           20 MK_REP            6000
+           30 PU_CLERK         13900
+           30 PU_MAN           11000
+
+SELECT department_id, job_id, SUM(salary)
+FROM employees
+GROUP BY department_id, job_id
+ORDER BY department_id, job_id;
+
+
+DEPARTMENT_ID JOB_ID     SUM(SALARY)
+------------- ---------- -----------
+           10 AD_ASST           4400
+           20 MK_MAN           13000
+           20 MK_REP            6000
+           30 PU_CLERK         13900
+           30 PU_MAN           11000
+           40 HR_REP            6500
+```
+
+#### Consultas incorretas utilizando Funções de Grupo
+
+- Você não pode utilizar a cláusula WHERE para restringir grupos  
+- Você não pode utilizar Funções de Grupo na cláusula WHERE  
+
+Obs: Utilize a cláusula HAVING para restringir grupos
+
+```sql
+-- Corrigindo consultas incorretas utilizando Funções de Grupo
+
+SELECT department_id,  AVG(salary)
+FROM employees
+GROUP BY department_id;
+
+-- Consultas incorretas utilizando Funções de Grupo
+
+SELECT department_id, MAX(salary)
+FROM   employees
+WHERE  MAX(salary) > 10000
+GROUP BY department_id;
+
+```
+
+```sql
+-- Corrigindo consultas incorretas utilizando Funções de Grupo
+
+-- Restringindo Grupos utilizando a cláusula HAVING
+
+SELECT department_id, MAX(salary)
+FROM   employees
+GROUP BY department_id
+HAVING MAX(salary)>10000;
+
+SELECT job_id, SUM(salary) TOTAL
+FROM   employees
+WHERE  job_id <> 'SA_REP'
+GROUP BY job_id
+HAVING   SUM(salary) > 10000
+ORDER BY SUM(salary);
+```
+
+```sql
+
+-- Aninhando Funções de Grupo
+
+SELECT MAX(AVG(salary))
+FROM employees
+GROUP BY department_id;
+
+SELECT AVG(salary)
+FROM   employees
+GROUP BY department_id;
+```
+
 
 
 [Voltar ao Índice](#indice)
