@@ -3,5 +3,6 @@
   <component name="SqlDialectMappings">
     <file url="file://$PROJECT_DIR$/recursos/Seção+11+-+Prática+Aula+1.sql" dialect="Oracle" />
     <file url="file://$PROJECT_DIR$/recursos/Seção+11+-+Prática+Aula+2.sql" dialect="Oracle" />
+    <file url="file://$PROJECT_DIR$/recursos/Seção+11+-+Prática+Aula+3.sql" dialect="Oracle" />
   </component>
 </project>

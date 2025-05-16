@@ -3036,19 +3036,199 @@ JOIN faixas_salariais f ON e.salario BETWEEN f.salario_min AND f.salario_max;
 
 Essa consulta retorna o nível de cada funcionário com base em onde seu salário se encaixa na tabela `faixas_salariais`.
 
-
-
-
-
-
-
-
-
-
-
-
 ### 21 Oracle SQL - INNER Joins
 
+- [recursos/Seção+11+-+Prática+Aula+3.sql](/recursos/Seção+11+-+Prática+Aula+3.sql)
+
+#### INNER Join
+
+- No SQL ANSI:1999, o join entre duas tabelas que retorna somente as linhas onde a condição de ligação coincidem é chamado INNER join (a palavra INNER é opcional)
+
+```sql
+-- Join com a Cláusula ON
+
+SELECT e.employee_id, j.job_title, d.department_name, l.city, l.state_province, l.country_id
+FROM   employees e
+  INNER JOIN jobs        j ON e.job_id = j.job_id
+  INNER JOIN departments d ON d.department_id = e.department_id
+  INNER JOIN locations   l ON d.location_id = l.location_id
+ORDER BY e.employee_id;
+
+SELECT e.employee_id, j.job_title, d.department_name, l.city, l.state_province, l.country_id
+FROM   employees e
+  JOIN jobs        j ON e.job_id = j.job_id
+  JOIN departments d ON d.department_id = e.department_id
+  JOIN locations   l ON d.location_id = l.location_id
+ORDER BY e.employee_id;
+```
+
+| EMPLOYEE\_ID | JOB\_TITLE | DEPARTMENT\_NAME | CITY | STATE\_PROVINCE | COUNTRY\_ID |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| 100 | President | Executive | Seattle | Washington | US |
+| 101 | Administration Vice President | Executive | Seattle | Washington | US |
+| 102 | Administration Vice President | Executive | Seattle | Washington | US |
+| 103 | Programmer | IT | Southlake | Texas | US |
+| 104 | Programmer | IT | Southlake | Texas | US |
+| 105 | Programmer | IT | Southlake | Texas | US |
+| 106 | Programmer | IT | Southlake | Texas | US |
+| 107 | Programmer | IT | Southlake | Texas | US |
+| 108 | Finance Manager | Finance | Seattle | Washington | US |
+| 109 | Accountant | Finance | Seattle | Washington | US |
+
+```sql
+-- Utilizando Natural Joins
+
+SELECT  department_id, department_name, location_id, city
+FROM    departments
+NATURAL INNER JOIN locations;
+
+SELECT  department_id, department_name, location_id, city
+FROM    departments
+NATURAL JOIN locations;
+```
+
+| DEPARTMENT\_ID | DEPARTMENT\_NAME | LOCATION\_ID | CITY |
+| :--- | :--- | :--- | :--- |
+| 60 | IT | 1400 | Southlake |
+| 50 | Shipping | 1500 | South San Francisco |
+| 10 | Administration | 1700 | Seattle |
+| 30 | Purchasing | 1700 | Seattle |
+| 90 | Executive | 1700 | Seattle |
+| 100 | Finance | 1700 | Seattle |
+| 110 | Accounting | 1700 | Seattle |
+| 120 | Treasury | 1700 | Seattle |
+| 130 | Corporate Tax | 1700 | Seattle |
+| 140 | Control And Credit | 1700 | Seattle |
+
+```sql
+-- JOIN com a Cláusula USING
+
+SELECT e.employee_id, e.last_name, d.location_id, department_id, d.department_name
+FROM employees e
+  INNER JOIN departments d USING (department_id);
+  
+SELECT e.employee_id, e.last_name, d.location_id, department_id, d.department_name
+FROM employees e
+  JOIN departments d USING (department_id);
+```
+
+| EMPLOYEE\_ID | LAST\_NAME | LOCATION\_ID | DEPARTMENT\_ID | DEPARTMENT\_NAME |
+| :--- | :--- | :--- | :--- | :--- |
+| 200 | Whalen | 1700 | 10 | Administration |
+| 201 | Hartstein | 1800 | 20 | Marketing |
+| 202 | Fay | 1800 | 20 | Marketing |
+| 114 | Raphaely | 1700 | 30 | Purchasing |
+| 119 | Colmenares | 1700 | 30 | Purchasing |
+| 115 | Khoo | 1700 | 30 | Purchasing |
+| 116 | Baida | 1700 | 30 | Purchasing |
+| 117 | Tobias | 1700 | 30 | Purchasing |
+| 118 | Himuro | 1700 | 30 | Purchasing |
+| 203 | Mavris | 2400 | 40 | Human Resources |
+
+
+# INNER JOIN em SQL
+
+## 📌 O que é INNER JOIN?
+O **INNER JOIN** (ou simplesmente `JOIN`) é uma operação que combina registros de duas tabelas quando há valores correspondentes nas colunas especificadas.
+
+## 🔍 Como funciona?
+- Retorna **apenas** as linhas onde existe correspondência em AMBAS as tabelas
+- Linhas sem correspondência são **excluídas** do resultado
+- É o tipo de JOIN mais comum e eficiente
+
+## ✍️ Sintaxe Básica
+```sql
+SELECT colunas
+FROM tabela1
+[INNER] JOIN tabela2 
+    ON tabela1.coluna = tabela2.coluna;
+```
+> 💡 A palavra `INNER` é opcional - apenas `JOIN` produz o mesmo resultado
+
+## 🏆 Quando usar?
+Situações ideais:
+- Relacionar pedidos com clientes
+- Vincular produtos a categorias
+- Consultar alunos matriculados em disciplinas
+
+## 📊 Exemplo Prático (Oracle)
+
+**Tabelas:**
+```sql
+-- Funcionários
+CREATE TABLE funcionarios (
+    id NUMBER,
+    nome VARCHAR2(100),
+    departamento_id NUMBER
+);
+
+-- Departamentos
+CREATE TABLE departamentos (
+    id NUMBER,
+    nome VARCHAR2(100)
+);
+```
+
+**Consulta:**
+```sql
+SELECT f.nome AS funcionario, 
+       d.nome AS departamento
+FROM funcionarios f
+JOIN departamentos d 
+    ON f.departamento_id = d.id;
+```
+
+**Resultado:**
+| funcionario | departamento |
+|-------------|--------------|
+| João Silva  | TI           |
+| Maria Souza | RH           |
+
+## ⚖️ INNER JOIN vs OUTER JOIN
+| Tipo         | Comportamento                          |
+|--------------|----------------------------------------|
+| INNER JOIN   | Apenas correspondências exatas         |
+| LEFT JOIN    | Todas linhas da tabela esquerda        |
+| RIGHT JOIN   | Todas linhas da tabela direita         |
+| FULL JOIN    | Todas linhas de ambas tabelas          |
+
+## 💡 Dicas Importantes
+1. Use **aliases** para simplificar consultas
+   ```sql
+   SELECT f.nome, d.nome
+   FROM funcionarios f
+   JOIN departamentos d ON f.depto_id = d.id;
+   ```
+
+2. Pode juntar múltiplas tabelas:
+   ```sql
+   SELECT f.nome, d.nome, p.nome_projeto
+   FROM funcionarios f
+   JOIN departamentos d ON f.depto_id = d.id
+   JOIN projetos p ON d.id = p.depto_id;
+   ```
+
+3. Evite a sintaxe legada (usando WHERE) - prefira o padrão ANSI
+
+## ⚠️ Cuidados
+- Colunas com valores `NULL` não serão pareadas
+- Certifique-se que as colunas de junção têm tipos de dados compatíveis
+- Em tabelas grandes, crie índices nas colunas de junção para melhor performance
+
+## 🔄 Sintaxe Alternativa (Oracle)
+```sql
+-- Equivalente usando WHERE (não recomendado)
+SELECT f.nome, d.nome
+FROM funcionarios f, departamentos d
+WHERE f.departamento_id = d.id;
+```
+
+> 📌 **Melhor prática**: Sempre use a sintaxe explícita `JOIN...ON` para maior clareza e manutenibilidade do código.
+
+## 🚀 Vantagens do INNER JOIN
+- **Performance**: Geralmente mais rápido que OUTER JOINs
+- **Precisão**: Retorna apenas dados relacionados
+- **Legibilidade**: Facilita o entendimento das relações entre tabelas
 
 
 ### 22 Oracle SQL - OUTER Joins
