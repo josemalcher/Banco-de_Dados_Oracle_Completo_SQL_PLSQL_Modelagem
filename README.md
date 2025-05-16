@@ -2701,6 +2701,269 @@ GROUP BY department_id;
 
 ## <a name="parte11">11 - Seção 11: Oracle SQL - Exibindo dados a partir de Múltiplas Tabelas</a>
 
+### 19 Oracle SQL - Exibindo dados a partir de Múltiplas Tabelas
+
+- [recursos/Seção+11+-+Prática+Aula+1.sql](/recursos/Seção+11+-+Prática+Aula+1.sql)
+
+#### Tipos de Joins compatíveis com SQL ANSI 1999
+
+- Natural joins:
+  - NATURAL JOIN
+  - USING
+  - ON
+- OUTER joins:
+  - LEFT OUTER JOIN
+  - RIGHT OUTER JOIN
+  - FULL OUTER JOIN
+- Cross join
+
+#### Qualificando nomes de colunas ambíguos
+
+- Utilize prefixos de tabela para qualificar nomes de colunas que são iguais em múltiplas tabelas  
+- Utilize prefixos de tabela para otimizar a performance  
+
+```sql
+
+-- Utilizando Prefixos Coluna com Nomes de Tabela 
+
+SELECT employees.employee_id, employees.last_name, 
+       employees.department_id, departments.department_name
+FROM   employees JOIN departments 
+       ON (employees.department_id = departments.department_id);
+```
+| EMPLOYEE\_ID | LAST\_NAME | DEPARTMENT\_ID | DEPARTMENT\_NAME |
+| :--- | :--- | :--- | :--- |
+| 200 | Whalen | 10 | Administration |
+| 201 | Hartstein | 20 | Marketing |
+| 202 | Fay | 20 | Marketing |
+| 114 | Raphaely | 30 | Purchasing |
+| 119 | Colmenares | 30 | Purchasing |
+| 115 | Khoo | 30 | Purchasing |
+| 116 | Baida | 30 | Purchasing |
+| 117 | Tobias | 30 | Purchasing |
+| 118 | Himuro | 30 | Purchasing |
+| 203 | Mavris | 40 | Human Resources |
+
+
+#### Qualificando nomes de colunas ambíguos
+
+- Ao invés de prefixos com o nome completo da tabela utilize Alias de Tabela  
+- Alias de Tabela podem ser nomes abreviados mantendo o código SQL menor e utilizando menos memória  
+- Utilize Alias de Tabela para diferenciar colunas que possuem nomes idênticos, mas residem em tabelas diferentes  
+
+```sql
+-- Utilizando Alias de Tabela
+
+SELECT e.employee_id, e.last_name, e.department_id, d.department_name
+FROM   employees e JOIN departments d
+ON     (e.department_id = d.department_id);
+```
+
+| EMPLOYEE\_ID | LAST\_NAME | DEPARTMENT\_ID | DEPARTMENT\_NAME |
+| :--- | :--- | :--- | :--- |
+| 200 | Whalen | 10 | Administration |
+| 201 | Hartstein | 20 | Marketing |
+| 202 | Fay | 20 | Marketing |
+| 114 | Raphaely | 30 | Purchasing |
+| 119 | Colmenares | 30 | Purchasing |
+| 115 | Khoo | 30 | Purchasing |
+| 116 | Baida | 30 | Purchasing |
+| 117 | Tobias | 30 | Purchasing |
+| 118 | Himuro | 30 | Purchasing |
+| 203 | Mavris | 40 | Human Resources |
+
+#### Criando Natural Joins
+
+- A cláusula NATURAL JOIN é baseada em todas as colunas nas duas tabelas que possuem e o mesmo nome  
+- Seleciona as linhas a partir das duas tabelas que possuem valores iguais em todas colunas envolvidas na cláusula  
+- Se as colunas possuem o mesmo nome, mas possuem diferentes tipos de dados, um erro será retornado  
+
+```sql
+-- Utilizando Natural Joins
+
+SELECT  department_id, department_name, location_id, city
+FROM    departments
+NATURAL JOIN locations;
+```
+| DEPARTMENT\_ID | DEPARTMENT\_NAME | LOCATION\_ID | CITY |
+| :--- | :--- | :--- | :--- |
+| 60 | IT | 1400 | Southlake |
+| 50 | Shipping | 1500 | South San Francisco |
+| 10 | Administration | 1700 | Seattle |
+| 30 | Purchasing | 1700 | Seattle |
+| 90 | Executive | 1700 | Seattle |
+| 100 | Finance | 1700 | Seattle |
+| 110 | Accounting | 1700 | Seattle |
+| 120 | Treasury | 1700 | Seattle |
+| 130 | Corporate Tax | 1700 | Seattle |
+| 140 | Control And Credit | 1700 | Seattle |
+
+#### JOIN com a Cláusula USING – SQL ANSI 1999
+
+SELECT tabela.coluna, tabela.coluna  
+FROM tabela  
+JOIN tabela USING (nome_coluna)
+
+```sql
+-- JOIN com a Cláusula USING
+
+SELECT e.employee_id, e.last_name, d.location_id, department_id, d.department_name
+FROM employees e
+  JOIN departments d USING (department_id);
+```
+| EMPLOYEE\_ID | LAST\_NAME | LOCATION\_ID | DEPARTMENT\_ID | DEPARTMENT\_NAME |
+| :--- | :--- | :--- | :--- | :--- |
+| 200 | Whalen | 1700 | 10 | Administration |
+| 201 | Hartstein | 1800 | 20 | Marketing |
+| 202 | Fay | 1800 | 20 | Marketing |
+| 114 | Raphaely | 1700 | 30 | Purchasing |
+| 119 | Colmenares | 1700 | 30 | Purchasing |
+| 115 | Khoo | 1700 | 30 | Purchasing |
+| 116 | Baida | 1700 | 30 | Purchasing |
+| 117 | Tobias | 1700 | 30 | Purchasing |
+| 118 | Himuro | 1700 | 30 | Purchasing |
+| 203 | Mavris | 2400 | 40 | Human Resources |
+
+
+#### Utilizando Alias de Tabela com a Cláusula USING
+
+- Não qualifique (prefixe) uma coluna que é utilizada na cláusula USING
+
+```sql
+-- Join com a Cláusula ON
+
+SELECT e.employee_id, e.last_name, e.department_id, d.location_id
+FROM employees e JOIN departments d
+ON (e.department_id = d.department_id);
+```
+| EMPLOYEE\_ID | LAST\_NAME | DEPARTMENT\_ID | LOCATION\_ID |
+| :--- | :--- | :--- | :--- |
+| 200 | Whalen | 10 | 1700 |
+| 201 | Hartstein | 20 | 1800 |
+| 202 | Fay | 20 | 1800 |
+| 114 | Raphaely | 30 | 1700 |
+| 119 | Colmenares | 30 | 1700 |
+| 115 | Khoo | 30 | 1700 |
+| 116 | Baida | 30 | 1700 |
+| 117 | Tobias | 30 | 1700 |
+| 118 | Himuro | 30 | 1700 |
+| 203 | Mavris | 40 | 2400 |
+
+```sql
+-- Joins utilizando várias tabelas com a Cláusula ON
+
+SELECT e.employee_id, j.job_title, d.department_name, l.city, l.state_province, l.country_id
+FROM employees e
+  JOIN jobs        j ON (e.job_id = j.job_id)
+  JOIN departments d ON (e.department_id = d.department_id)
+  JOIN locations   l ON (d.location_id = l.location_id)
+ORDER BY e.employee_id;
+```
+| EMPLOYEE\_ID | JOB\_TITLE | DEPARTMENT\_NAME | CITY | STATE\_PROVINCE | COUNTRY\_ID |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| 100 | President | Executive | Seattle | Washington | US |
+| 101 | Administration Vice President | Executive | Seattle | Washington | US |
+| 102 | Administration Vice President | Executive | Seattle | Washington | US |
+| 103 | Programmer | IT | Southlake | Texas | US |
+| 104 | Programmer | IT | Southlake | Texas | US |
+| 105 | Programmer | IT | Southlake | Texas | US |
+| 106 | Programmer | IT | Southlake | Texas | US |
+| 107 | Programmer | IT | Southlake | Texas | US |
+| 108 | Finance Manager | Finance | Seattle | Washington | US |
+| 109 | Accountant | Finance | Seattle | Washington | US |
+
+```sql
+-- Incluindo condições adicionais a condição de Join na cláusula WHERE
+
+SELECT e.employee_id, e.last_name, e.salary, e.department_id, d.department_name
+FROM employees e JOIN departments d
+ON  (e.department_id = d.department_id)
+WHERE (e.salary BETWEEN 10000 AND 15000);
+
+```
+| EMPLOYEE\_ID | LAST\_NAME | SALARY | DEPARTMENT\_ID | DEPARTMENT\_NAME |
+| :--- | :--- | :--- | :--- | :--- |
+| 201 | Hartstein | 13000.00 | 20 | Marketing |
+| 114 | Raphaely | 11000.00 | 30 | Purchasing |
+| 204 | Baer | 10000.00 | 70 | Public Relations |
+| 147 | Errazuriz | 12000.00 | 80 | Sales |
+| 169 | Bloom | 10000.00 | 80 | Sales |
+| 145 | Russell | 14000.00 | 80 | Sales |
+| 146 | Partners | 13500.00 | 80 | Sales |
+| 174 | Abel | 11000.00 | 80 | Sales |
+| 148 | Cambrault | 11000.00 | 80 | Sales |
+| 149 | Zlotkey | 10500.00 | 80 | Sales |
+
+```sql
+-- Incluindo condições adicionais a condição de Join utilizando AND
+
+SELECT e.employee_id, e.last_name, e.salary, e.department_id, d.department_name
+FROM employees e JOIN departments d
+ON (e.department_id = d.department_id) AND
+   (e.salary BETWEEN 10000 AND 15000);
+
+```
+| EMPLOYEE\_ID | LAST\_NAME | SALARY | DEPARTMENT\_ID | DEPARTMENT\_NAME |
+| :--- | :--- | :--- | :--- | :--- |
+| 201 | Hartstein | 13000.00 | 20 | Marketing |
+| 114 | Raphaely | 11000.00 | 30 | Purchasing |
+| 204 | Baer | 10000.00 | 70 | Public Relations |
+| 147 | Errazuriz | 12000.00 | 80 | Sales |
+| 169 | Bloom | 10000.00 | 80 | Sales |
+| 145 | Russell | 14000.00 | 80 | Sales |
+| 146 | Partners | 13500.00 | 80 | Sales |
+| 174 | Abel | 11000.00 | 80 | Sales |
+| 148 | Cambrault | 11000.00 | 80 | Sales |
+| 149 | Zlotkey | 10500.00 | 80 | Sales |
+
+```sql
+-- Self Join Utilizando a Cláusula ON
+
+SELECT empregado.employee_id "Id empregado", empregado.last_name "Sobrenome empregado",
+       gerente.employee_id "Id gerente", gerente.last_name "Sobrenome gerente"
+FROM employees empregado JOIN employees gerente
+ON (empregado.manager_id = gerente.employee_id)
+ORDER BY empregado.employee_id;
+
+```
+
+| Id empregado | Sobrenome empregado | Id gerente | Sobrenome gerente |
+| :--- | :--- | :--- | :--- |
+| 101 | Kochhar | 100 | King |
+| 102 | De Haan | 100 | King |
+| 103 | Hunold | 102 | De Haan |
+| 104 | Ernst | 103 | Hunold |
+| 105 | Austin | 103 | Hunold |
+| 106 | Pataballa | 103 | Hunold |
+| 107 | Lorentz | 103 | Hunold |
+| 108 | Greenberg | 101 | Kochhar |
+| 109 | Faviet | 108 | Greenberg |
+| 110 | Chen | 108 | Greenberg |
+
+
+
+
+
+
+### 20 Oracle SQL - Nonequijoins
+
+
+
+### 21 Oracle SQL - INNER Joins
+
+
+
+### 22 Oracle SQL - OUTER Joins
+
+
+
+### 23 Oracle SQL - Produto Cartesiano
+
+
+
+### 24 Oracle SQL - Joins utilizando sintaxe Oracle
+
+
 
 
 [Voltar ao Índice](#indice)
