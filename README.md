@@ -3233,6 +3233,82 @@ WHERE f.departamento_id = d.id;
 
 ### 22 Oracle SQL - OUTER Joins
 
+- [recursos/Seção+11+-+Prática+Aula+4.sql](/recursos/Seção+11+-+Prática+Aula+4.sql)
+
+#### OUTER Join
+
+- Retornando Registros que não correspondem a condição de JOIN Utilizando OUTER Join
+
+#### LEFT OUTER Join
+
+- Um join entre duas tabelas que retorna as linhas que resultam do INNER join e também as linhas que não coincidem a partir da tabela LEFT é chamado de LEFT OUTER Join
+
+```sql
+-- LEFT OUTER JOIN
+
+SELECT e.first_name, e.last_name, d.department_id, d.department_name
+FROM employees e LEFT OUTER JOIN departments d
+     ON (e.department_id = d.department_id) 
+ORDER BY d.department_id;
+```
+
+| FIRST\_NAME | LAST\_NAME | DEPARTMENT\_ID | DEPARTMENT\_NAME |
+| :--- | :--- |:---------------|:-----------------|
+| Jennifer | Whalen | 10             | Administration   |
+| Michael | Hartstein | 20             | Marketing        |
+| Pat | Fay | 20             | Marketing        |
+| Den | Raphaely | 30             | Purchasing       |
+| Alexander | Khoo | 30             | Purchasing       |
+| Shelli | Baida | 30             | Purchasing       |
+| Sigal | Tobias | 30             | Purchasing       |
+| Guy | Himuro | 30             | Purchasing       |
+| Karen | Colmenares | 30             | Purchasing       |
+| Susan | Mavris | (null)              | (null)           |
+
+
+-- RIGHT OUTER JOIN
+
+SELECT d.department_id, d.department_name, e.first_name, e.last_name
+FROM employees e RIGHT OUTER JOIN departments d
+     ON (e.department_id = d.department_id) 
+ORDER BY d.department_id;
+
+
+
+| DEPARTMENT\_ID | DEPARTMENT\_NAME | FIRST\_NAME | LAST\_NAME |
+| :--- | :--- | :--- | :--- |
+| 10 | Administration | Jennifer | Whalen |
+| 20 | Marketing | Pat | Fay |
+| 20 | Marketing | Michael | Hartstein |
+| 30 | Purchasing | Sigal | Tobias |
+| 30 | Purchasing | Karen | Colmenares |
+| 30 | Purchasing | Shelli | Baida |
+| 30 | Purchasing | Den | Raphaely |
+| 30 | Purchasing | Alexander | Khoo |
+| 30 | Purchasing | (null)  | (null)  |
+| 40 | Human Resources | (null)  | (null)  |
+
+```sql
+-- FULL OUTER JOIN
+
+SELECT d.department_id, d.department_name, e.first_name, e.last_name
+FROM   employees e FULL OUTER JOIN departments d
+     ON (e.department_id = d.department_id) 
+ORDER BY d.department_id;
+```
+
+| DEPARTMENT\_ID | DEPARTMENT\_NAME | FIRST\_NAME | LAST\_NAME |
+| :--- |:-----------------|:------------|:-----------|
+| 10 | Administration   | Jennifer    | Whalen     |
+| 20 | Marketing        | Pat         | Fay        |
+| 20 | Marketing        | Michael     | Hartstein  |
+| 30 | Purchasing       | Sigal       | Tobias     |
+| 30 | Purchasing       | Shelli      | Baida      |
+| 30 | Purchasing       | Karen       | Colmenares |
+| 30 | <null>           | Guy         | Himuro     |
+| 30 | Purchasing       | Den         | Raphaely   |
+| 30 | Purchasing       | Alexander   | Khoo       |
+| 40 | Human Resources  | <null>      | <null>     |
 
 
 ### 23 Oracle SQL - Produto Cartesiano
