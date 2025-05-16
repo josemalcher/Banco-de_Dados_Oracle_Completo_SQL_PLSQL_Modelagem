@@ -3446,6 +3446,235 @@ ORDER BY a.ano, m.mes_num;
 
 ### 24 Oracle SQL - Joins utilizando sintaxe Oracle
 
+- [recursos/Seção+11+-+Prática+Aula+6.sql](/recursos/Seção+11+-+Prática+Aula+6.sql)
+
+#### Tipos de Joins utilizando sintaxe Oracle
+
+- Equipin  
+- Nonequipin  
+- Outer join  
+- Self-join
+
+```sql
+-- EquiJoin utilizando Sintaxe Oracle
+
+SELECT e.employee_id, e.last_name, e.department_id, d.department_id, d.location_id
+FROM   employees e,
+       departments d
+WHERE  (e.department_id = d.department_id)
+ORDER BY e.department_id;
+```
+| EMPLOYEE\_ID | LAST\_NAME | DEPARTMENT\_ID | DEPARTMENT\_ID | LOCATION\_ID |
+| :--- | :--- | :--- | :--- | :--- |
+| 200 | Whalen | 10 | 10 | 1700 |
+| 201 | Hartstein | 20 | 20 | 1800 |
+| 202 | Fay | 20 | 20 | 1800 |
+| 114 | Raphaely | 30 | 30 | 1700 |
+| 119 | Colmenares | 30 | 30 | 1700 |
+| 115 | Khoo | 30 | 30 | 1700 |
+| 116 | Baida | 30 | 30 | 1700 |
+| 117 | Tobias | 30 | 30 | 1700 |
+| 118 | Himuro | 30 | 30 | 1700 |
+| 203 | Mavris | 40 | 40 | 2400 |
+
+```sql
+-- Joins entre várias tabelas utilizando Sintaxe Oracle
+
+SELECT e.employee_id, j.job_title, d.department_name, l.city, l.state_province, l.country_id
+FROM   employees e,
+       jobs j,
+       departments d, 
+       locations l
+WHERE (e.job_id = j.job_id)               AND
+      (d.department_id = e.department_id) AND
+      (d.location_id = l.location_id)
+ORDER BY e.employee_id;
+
+-- Incluindo condições adicionais a condição de Join utilizando AND
+
+SELECT e.employee_id, e.salary, j.job_title, 
+       d.department_name, l.city, l.state_province, l.country_id
+FROM   employees e,
+       jobs j,
+       departments d, 
+       locations l
+WHERE (e.job_id = j.job_id)  AND
+      (d.department_id = e.department_id) AND
+      (d.location_id = l.location_id)     AND
+      (e.salary >= 1000)
+ORDER BY e.employee_id;
+
+```
+
+| EMPLOYEE\_ID | JOB\_TITLE | DEPARTMENT\_NAME | CITY | STATE\_PROVINCE | COUNTRY\_ID |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| 100 | President | Executive | Seattle | Washington | US |
+| 101 | Administration Vice President | Executive | Seattle | Washington | US |
+| 102 | Administration Vice President | Executive | Seattle | Washington | US |
+| 103 | Programmer | IT | Southlake | Texas | US |
+| 104 | Programmer | IT | Southlake | Texas | US |
+| 105 | Programmer | IT | Southlake | Texas | US |
+| 106 | Programmer | IT | Southlake | Texas | US |
+| 107 | Programmer | IT | Southlake | Texas | US |
+| 108 | Finance Manager | Finance | Seattle | Washington | US |
+| 109 | Accountant | Finance | Seattle | Washington | US |
+
+
+| EMPLOYEE\_ID | SALARY | JOB\_TITLE | DEPARTMENT\_NAME | CITY | STATE\_PROVINCE | COUNTRY\_ID |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| 100 | 24000.00 | President | Executive | Seattle | Washington | US |
+| 101 | 17000.00 | Administration Vice President | Executive | Seattle | Washington | US |
+| 102 | 17000.00 | Administration Vice President | Executive | Seattle | Washington | US |
+| 103 | 9000.00 | Programmer | IT | Southlake | Texas | US |
+| 104 | 6000.00 | Programmer | IT | Southlake | Texas | US |
+| 105 | 4800.00 | Programmer | IT | Southlake | Texas | US |
+| 106 | 4800.00 | Programmer | IT | Southlake | Texas | US |
+| 107 | 4200.00 | Programmer | IT | Southlake | Texas | US |
+| 108 | 12008.00 | Finance Manager | Finance | Seattle | Washington | US |
+| 109 | 9000.00 | Accountant | Finance | Seattle | Washington | US |
+
+
+```sql
+-- NonequiJoin Utilizando Sintaxe Oracle
+
+SELECT e.employee_id, e.salary, j.grade_level, j.lowest_sal, j.highest_sal
+FROM   employees e,
+       job_grades j
+WHERE  NVL(e.salary,0) BETWEEN j.lowest_sal AND j.highest_sal
+ORDER BY e.salary;
+```
+| EMPLOYEE\_ID | SALARY | GRADE\_LEVEL | LOWEST\_SAL | HIGHEST\_SAL |
+| :--- | :--- | :--- | :--- | :--- |
+| 132 | 2100.00 | A | 1000.00 | 2999.00 |
+| 128 | 2200.00 | A | 1000.00 | 2999.00 |
+| 136 | 2200.00 | A | 1000.00 | 2999.00 |
+| 135 | 2400.00 | A | 1000.00 | 2999.00 |
+| 127 | 2400.00 | A | 1000.00 | 2999.00 |
+| 182 | 2500.00 | A | 1000.00 | 2999.00 |
+| 144 | 2500.00 | A | 1000.00 | 2999.00 |
+| 140 | 2500.00 | A | 1000.00 | 2999.00 |
+| 119 | 2500.00 | A | 1000.00 | 2999.00 |
+| 131 | 2500.00 | A | 1000.00 | 2999.00 |
+
+
+```sql
+-- Outer Join Utilizando Sintaxe Oracle
+
+SELECT e.first_name, e.last_name, d.department_id, d.department_name
+FROM   employees e,
+       departments d
+WHERE  e.department_id = d.department_id(+) 
+ORDER BY e.department_id;
+
+SELECT e.first_name, e.last_name, d.department_id, d.department_name
+FROM   employees e,
+       departments d
+WHERE  e.department_id(+) = d.department_id 
+ORDER BY e.first_name;
+```
+
+| FIRST\_NAME | LAST\_NAME | DEPARTMENT\_ID | DEPARTMENT\_NAME |
+| :--- | :--- |:---------------| :--- |
+| Jennifer | Whalen | 10             | Administration |
+| Michael | Hartstein | 20             | Marketing |
+| Pat | Fay | 20             | Marketing |
+| Den | Raphaely | 30             | Purchasing |
+| Alexander | Khoo | 30             | Purchasing |
+| Shelli | Baida | 30             | Purchasing |
+| Sigal | Tobias | 30             | Purchasing |
+| Guy | Himuro | 30             | Purchasing |
+| Karen | Colmenares | 30             | Purchasing |
+| Susan | Mavris | <null>         | <null> |
+
+
+| FIRST\_NAME | LAST\_NAME | DEPARTMENT\_ID | DEPARTMENT\_NAME |
+| :--- | :--- | :--- | :--- |
+| Adam | Fripp | 50 | Shipping |
+| Alana | Walsh | 50 | Shipping |
+| Alberto | Errazuriz | 80 | Sales |
+| Alexander | Khoo | 30 | Purchasing |
+| Alexander | Hunold | 60 | IT |
+| Alexis | Bull | 50 | Shipping |
+| Allan | McEwen | 80 | Sales |
+| Alyssa | Hutton | 80 | Sales |
+| <null> | <null> | 80 | Sales |
+| <null> | <null> | 50 | Shipping |
+
+```sql
+-- Self-join Utilizando Sintaxe Oracle
+
+SELECT empregado.employee_id "Id empregado", empregado.last_name "Sobrenome empregado",
+       gerente.employee_id "Id gerente", gerente.last_name "Sobrenome gerente"
+FROM   employees empregado,
+       employees gerente
+WHERE (empregado.manager_id = gerente.employee_id)
+ORDER BY empregado.employee_id;
+
+DESC employees
+```
+| Id empregado | Sobrenome empregado | Id gerente | Sobrenome gerente |
+| :--- | :--- | :--- | :--- |
+| 101 | Kochhar | 100 | King |
+| 102 | De Haan | 100 | King |
+| 103 | Hunold | 102 | De Haan |
+| 104 | Ernst | 103 | Hunold |
+| 105 | Austin | 103 | Hunold |
+| 106 | Pataballa | 103 | Hunold |
+| 107 | Lorentz | 103 | Hunold |
+| 108 | Greenberg | 101 | Kochhar |
+| 109 | Faviet | 108 | Greenberg |
+| 110 | Chen | 108 | Greenberg |
+
+```sql
+-- Outer Join e Self Join Utilizando Sintaxe Oracle
+
+SELECT empregado.employee_id "Id empregado", empregado.last_name "Sobrenome empregado",
+       gerente.employee_id "Id gerente", gerente.last_name "Sobrenome gerente"
+FROM   employees empregado,
+       employees gerente
+WHERE (empregado.manager_id = gerente.employee_id(+))
+ORDER BY empregado.employee_id;
+```
+
+| Id empregado | Sobrenome empregado | Id gerente | Sobrenome gerente |
+| :--- | :--- | :--- | :--- |
+| 100 | King | null | null |
+| 101 | Kochhar | 100 | King |
+| 102 | De Haan | 100 | King |
+| 103 | Hunold | 102 | De Haan |
+| 104 | Ernst | 103 | Hunold |
+| 105 | Austin | 103 | Hunold |
+| 106 | Pataballa | 103 | Hunold |
+| 107 | Lorentz | 103 | Hunold |
+| 108 | Greenberg | 101 | Kochhar |
+| 109 | Faviet | 108 | Greenberg |
+
+
+```sql
+-- Produto Cartesiano
+-- é um erro!
+SELECT e.employee_id, e.first_name, e.last_name, j.job_id, j.job_title
+FROM   employees e, jobs j;
+
+-- Corrigindo Produto Cartesiano 
+
+SELECT e.employee_id, e.first_name, e.last_name, j.job_id, j.job_title
+FROM   employees e, jobs j
+WHERE  e.job_id = j.job_id;
+```
+
+| EMPLOYEE\_ID | FIRST\_NAME | LAST\_NAME | JOB\_ID | JOB\_TITLE |
+| :--- | :--- | :--- | :--- | :--- |
+| 206 | William | Gietz | AC\_ACCOUNT | Public Accountant |
+| 205 | Shelley | Higgins | AC\_MGR | Accounting Manager |
+| 200 | Jennifer | Whalen | AD\_ASST | Administration Assistant |
+| 100 | Steven | King | AD\_PRES | President |
+| 101 | Neena | Kochhar | AD\_VP | Administration Vice President |
+| 102 | Lex | De Haan | AD\_VP | Administration Vice President |
+| 111 | Ismael | Sciarra | FI\_ACCOUNT | Accountant |
+| 110 | John | Chen | FI\_ACCOUNT | Accountant |
+| 113 | Luis | Popp | FI\_ACCOUNT | Accountant |
+| 112 | Jose Manuel | Urman | FI\_ACCOUNT | Accountant |
 
 
 
