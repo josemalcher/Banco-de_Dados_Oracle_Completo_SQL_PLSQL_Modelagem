@@ -2941,11 +2941,109 @@ ORDER BY empregado.employee_id;
 | 110 | Chen | 108 | Greenberg |
 
 
-
-
-
-
 ### 20 Oracle SQL - Nonequijoins
+
+- [recursos/Seção+11+-+Prática+Aula+2.sql](/recursos/Seção+11+-+Prática+Aula+2.sql)
+
+#### Nonequijoins
+
+- Realizando um JOIN quando a condição de ligação não é uma condição de igualdade.
+
+![img.png](img/20_1_nonequijoins1.png)
+
+```sql
+-- Nonequijoins
+
+SELECT   e.employee_id, e.salary, j.grade_level, j.lowest_sal, j.highest_sal
+FROM     employees e 
+  JOIN   job_grades j
+     ON  NVL(e.salary,0) BETWEEN j.lowest_sal AND j.highest_sal
+ORDER BY e.salary;
+```
+
+```sql
+
+SELECT   e.employee_id, e.salary, j.grade_level, j.lowest_sal, j.highest_sal
+FROM     employees e 
+  JOIN   job_grades j
+     ON  NVL(e.salary,0) >= j.lowest_sal AND 
+         NVL(e.salary,0) <= j.highest_sal
+ORDER BY e.salary;
+```
+
+| EMPLOYEE\_ID | SALARY | GRADE\_LEVEL | LOWEST\_SAL | HIGHEST\_SAL |
+| :--- | :--- | :--- | :--- | :--- |
+| 132 | 2100.00 | A | 1000.00 | 2999.00 |
+| 128 | 2200.00 | A | 1000.00 | 2999.00 |
+| 136 | 2200.00 | A | 1000.00 | 2999.00 |
+| 135 | 2400.00 | A | 1000.00 | 2999.00 |
+| 127 | 2400.00 | A | 1000.00 | 2999.00 |
+| 182 | 2500.00 | A | 1000.00 | 2999.00 |
+| 144 | 2500.00 | A | 1000.00 | 2999.00 |
+| 140 | 2500.00 | A | 1000.00 | 2999.00 |
+| 119 | 2500.00 | A | 1000.00 | 2999.00 |
+| 131 | 2500.00 | A | 1000.00 | 2999.00 |
+
+
+### **Resumo sobre Nonequijoins**
+
+**O que são Nonequijoins?**  
+Nonequijoins (ou "junções não igualitárias") são operações de `JOIN` em SQL onde a condição de ligação entre as tabelas **não** é baseada em igualdade (`=`), mas sim em outros operadores de comparação, como:  
+- `>` (maior que)  
+- `<` (menor que)  
+- `>=` (maior ou igual)  
+- `<=` (menor ou igual)  
+- `BETWEEN` (intervalo)  
+- `LIKE` (padrões de texto)  
+
+---
+
+**Quando usar?**  
+São úteis para:  
+1. **Comparar intervalos de valores**:  
+   - Exemplo: Vincular produtos a faixas de preço em uma tabela de categorias.  
+   ```sql
+   SELECT p.nome_produto, c.categoria
+   FROM produtos p
+   JOIN categorias c ON p.preco BETWEEN c.preco_min AND c.preco_max;
+   ```
+
+2. **Relacionar dados hierárquicos**:  
+   - Exemplo: Funcionários e seus níveis salariais em uma tabela de faixas.  
+
+3. **Filtrar com condições complexas**:  
+   - Exemplo: Clientes com datas de cadastro anteriores a um período específico em outra tabela.  
+
+---
+
+**Diferença para EQUIJOINS**  
+- **EQUIJOIN**: Usa `=` para relacionar chaves primárias/estrangeiras (ex: `ON tabelaA.id = tabelaB.id`).  
+- **NONEQUIJOIN**: Usa outros operadores para relações não exatas.  
+
+**Cuidados:**  
+- Pode gerar resultados inesperados se a condição não for bem definida.  
+- Pode ser menos eficiente que equijoins em bancos de dados grandes.  
+
+---
+
+**Exemplo Prático (Oracle):**  
+```sql
+-- Relaciona funcionários com suas faixas salariais (sem igualdade)
+SELECT e.nome, e.salario, f.nivel
+FROM funcionarios e
+JOIN faixas_salariais f ON e.salario BETWEEN f.salario_min AND f.salario_max;
+``` 
+
+Essa consulta retorna o nível de cada funcionário com base em onde seu salário se encaixa na tabela `faixas_salariais`.
+
+
+
+
+
+
+
+
+
 
 
 
