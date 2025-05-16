@@ -3313,6 +3313,135 @@ ORDER BY d.department_id;
 
 ### 23 Oracle SQL - Produto Cartesiano
 
+- [recursos/Seção+11+-+Prática+Aula+5.sql](/recursos/Seção+11+-+Prática+Aula+5.sql)
+
+![img.png](img/23_1_cartesiano.png)
+
+#### Gerando um Produto Cartesiano utilizando Cross Join
+
+- A Cláusula CROSS JOIN produz um produto Cartesiano entre as duas tabelas.
+
+```sql
+-- Gerando um Produto Cartesiano utilizando Cross Join
+
+SELECT last_name, department_name
+FROM   employees
+  CROSS JOIN departments;
+```
+| LAST\_NAME | DEPARTMENT\_NAME |
+| :--- | :--- |
+| Abel | Administration |
+| Ande | Administration |
+| Atkinson | Administration |
+| Austin | Administration |
+| Baer | Administration |
+| Baida | Administration |
+| Banda | Administration |
+| Bates | Administration |
+| Bell | Administration |
+| Bernstein | Administration |
+
+---
+
+# CROSS JOIN no Oracle Database
+
+## 📌 O que é CROSS JOIN?
+
+O **CROSS JOIN** é um tipo de operação de junção em SQL que produz o **produto cartesiano** entre duas tabelas. No Oracle Database, assim como em outros SGBDs, ele combina cada linha da primeira tabela com todas as linhas da segunda tabela.
+
+## 🔍 Como funciona?
+
+- **Produto Cartesiano**: Combinação linear de todas as linhas
+  - Se a tabela A tem *m* linhas e a tabela B tem *n* linhas
+  - O resultado terá *m × n* linhas
+- **Não requer** condição de junção (não usa ON ou USING)
+- **Sintaxe básica**:
+  ```sql
+  SELECT colunas
+  FROM tabela1
+  CROSS JOIN tabela2;
+  ```
+
+## 💡 Casos de Uso Comuns
+
+1. **Geração de dados combinatórios**:
+   ```sql
+   -- Combina cores com tamanhos para gerar todas variações
+   SELECT c.cor, t.tamanho
+   FROM cores c
+   CROSS JOIN tamanhos t;
+   ```
+
+2. **Criação de datasets completos** para relatórios
+
+3. **Testes de performance** (geração de massa de dados)
+
+## ⚠️ Cuidados Importantes
+
+1. **Impacto de performance**:
+   - Tabelas com 1.000 linhas cada → 1.000.000 de resultados
+   - Pode consumir recursos excessivos
+
+2. **Uso consciente**:
+   - Evite em tabelas grandes
+   - Considere filtros adicionais (WHERE)
+
+## 🆚 Comparação com outros JOINs
+
+| Tipo         | Descrição                          | Oracle Syntax Example             |
+|--------------|-----------------------------------|-----------------------------------|
+| INNER JOIN   | Apenas linhas correspondentes     | `SELECT ... FROM A JOIN B ON...`  |
+| LEFT JOIN    | Todas da esquerda + correspondentes | `SELECT ... FROM A LEFT JOIN B...`|
+| CROSS JOIN   | Todas combinações possíveis        | `SELECT ... FROM A CROSS JOIN B`  |
+
+## 🔄 Sintaxes Alternativas no Oracle
+
+1. **Padrão ANSI** (recomendado):
+   ```sql
+   SELECT *
+   FROM departamentos
+   CROSS JOIN funcionarios;
+   ```
+
+2. **Sintaxe tradicional** (sem WHERE):
+   ```sql
+   SELECT *
+   FROM departamentos, funcionarios;
+   ```
+
+## 📊 Exemplo Prático
+
+```sql
+-- Tabelas de exemplo
+CREATE TABLE meses (
+    mes_num NUMBER,
+    mes_nome VARCHAR2(20)
+);
+
+CREATE TABLE anos (
+    ano NUMBER
+);
+
+-- CROSS JOIN para gerar calendário
+SELECT a.ano, m.mes_num, m.mes_nome
+FROM anos a
+CROSS JOIN meses m
+ORDER BY a.ano, m.mes_num;
+```
+
+## 🚀 Boas Práticas
+
+1. **Use com moderação** em tabelas pequenas
+2. **Combine com WHERE** para limitar resultados:
+   ```sql
+   SELECT p.produto, r.regiao
+   FROM produtos p
+   CROSS JOIN regioes r
+   WHERE r.regiao IN ('Norte', 'Sul');
+   ```
+3. **Prefira a sintaxe explícita** `CROSS JOIN` para maior clareza
+
+> ⚠️ **Atenção**: Em implementações Oracle, o CROSS JOIN pode ser menos eficiente que outros joins para grandes volumes de dados. Sempre avalie o plano de execução.
 
 
 ### 24 Oracle SQL - Joins utilizando sintaxe Oracle
