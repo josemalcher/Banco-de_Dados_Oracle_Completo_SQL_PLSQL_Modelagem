@@ -3685,7 +3685,161 @@ WHERE  e.job_id = j.job_id;
 
 ## <a name="parte12">12 - Seção 12: Oracle SQL - Utilizando Sub-Consultas</a>
 
+### 25 Oracle SQL - Sub-Consultas Single-Row
 
+[Seção+12+-+Prática+Aula+1.sql](recursos/Se%C3%A7%C3%A3o%2B12%2B-%2BPr%C3%A1tica%2BAula%2B1.sql)
+
+#### Diretrizes para Sub-Consultas
+
+  * A Sub-Consulta deve ficar entre parênteses
+  * A Sub-Consulta deve ficar a direita do operador de comparação para melhor entendimento e compreensão do código, entretanto, a Sub-Consulta pode aparecer em qualquer lado do operador
+  * Utilize operadores single-row com Sub-Consultas single-row
+  * Utilize operadores multiple-row com Sub-Consultas multiple-row
+
+-----
+
+### Resumo das Diretrizes para Sub-Consultas (Baseado na Imagem)
+
+O texto da imagem apresenta quatro diretrizes fundamentais para o uso de sub-consultas em SQL:
+
+1.  **Delimitação com Parênteses:** Toda sub-consulta deve ser obrigatoriamente aninhada dentro de parênteses `()`. Isso define claramente o escopo da consulta interna.
+2.  **Posicionamento em Comparações:** Para melhor legibilidade, sugere-se que a sub-consulta seja colocada à direita do operador de comparação (ex: `coluna = (SELECT ...)`). No entanto, é tecnicamente possível que ela apareça à esquerda (ex: `(SELECT ...) = coluna`), embora menos comum e potencialmente menos intuitivo.
+3.  **Coerência com Operadores Single-Row:** Ao usar uma sub-consulta que retorna uma única linha (single-row subquery), deve-se empregar operadores de comparação que esperam um único valor (ex: `=`, `>`, `<`, `<=`, `>=`, `<>`).
+4.  **Coerência com Operadores Multiple-Row:** Ao usar uma sub-consulta que pode retornar múltiplas linhas (multiple-row subquery), é necessário utilizar operadores apropriados para lidar com conjuntos de valores (ex: `IN`, `ANY`, `ALL`, `EXISTS`).
+
+### Boas e Más Práticas Relacionadas às Diretrizes
+
+#### Boas Práticas 👍
+
+1.  **Sempre Usar Parênteses:** É uma regra sintática fundamental. Não há exceção. Isso melhora a clareza e garante que o SGBD interprete a consulta corretamente.
+2.  **Posição à Direita para Clareza:** Manter a sub-consulta à direita do operador de comparação (`valor = (subconsulta)`) é o padrão e torna o código mais fácil de ler e entender para a maioria dos desenvolvedores, pois segue um fluxo lógico de "comparar X com o resultado de Y".
+3.  **Escolha Correta de Operadores:**
+      * **Single-Row:** Utilizar `=` , `>` , `<` , etc., com sub-consultas que garantidamente retornam um único valor (ex: usando funções de agregação como `MAX()`, `MIN()`, `AVG()` sem `GROUP BY`, ou filtrando por uma chave primária). Isso evita o erro "ORA-01427: single-row subquery returns more than one row".
+      * **Multiple-Row:** Usar `IN` (para verificar se um valor está contido em um conjunto de resultados), `ANY` (para comparar um valor com qualquer valor no conjunto de resultados retornado pela subconsulta, usado com `>`, `<`, etc.), `ALL` (para comparar um valor com todos os valores no conjunto de resultados), e `EXISTS` (para verificar se a subconsulta retorna alguma linha).
+4.  **Formatação e Indentação:** Indentar a sub-consulta em relação à consulta principal melhora significativamente a legibilidade, especialmente em consultas complexas.
+5.  **Comentários Explicativos:** Para sub-consultas com lógica não trivial, adicionar um breve comentário explicando seu propósito pode ser muito útil.
+
+#### Más Práticas 👎
+
+1.  **Omissão de Parênteses:** Levará a um erro de sintaxe.
+2.  **Posicionamento Inconsistente/Confuso:** Embora permitido, colocar a sub-consulta à esquerda do operador de comparação sem uma razão forte pode dificultar a leitura.
+3.  **Mismatch de Operadores e Tipo de Sub-consulta:**
+      * Usar um operador single-row (ex: `=`) com uma sub-consulta que *pode* retornar múltiplas linhas. Isso é uma causa comum de erros (`ORA-01427`).
+      * Usar um operador multiple-row (ex: `IN`) com uma sub-consulta que você espera que retorne apenas um valor, mas de forma inadequada. Embora possa funcionar, pode mascarar um entendimento incorreto da lógica ou dos dados.
+4.  **Sub-consultas Desnecessariamente Complexas:** Se uma `JOIN` puder realizar a mesma tarefa de forma mais clara e eficiente, ela geralmente é preferível.
+5.  **Ignorar o Impacto de `NULL`s:** Se uma sub-consulta single-row não retornar linhas, ela retorna `NULL`. Comparações com `NULL` (ex: `coluna = NULL`) geralmente não se comportam como esperado (resultam em `UNKNOWN`). É preciso estar ciente disso e usar `IS NULL` ou funções como `NVL`/`COALESCE` se necessário. Para sub-consultas com `NOT IN`, se o conjunto de resultados da sub-consulta contiver um `NULL`, a condição `NOT IN` inteira pode avaliar para `FALSE` ou `UNKNOWN` inesperadamente.
+6.  **Falta de Teste Isolado:** Não testar a sub-consulta separadamente para verificar se ela retorna o número esperado de linhas e colunas, e os valores corretos, antes de integrá-la à consulta principal.
+
+---
+Operadores Comuns Utilizados com Sub-Consultas Single-Row:
+
+Os operadores de comparação padrão são frequentemente usados com sub-consultas single-row:
+
+- "=" (Igual a)
+- ">" (Maior que)
+- "<" (Menor que)
+- ">=" (Maior ou igual a)
+- "<=" (Menor ou igual a)
+- "<>" ou != (Diferente de)
+
+```sql
+-- Sub-Consultas Single-Row
+
+SELECT first_name, last_name, job_id, salary
+FROM   employees
+WHERE  salary >
+                (SELECT AVG(NVL(salary,0))
+                 FROM employees);              
+
+```
+
+```sql
+-- Utilizando Sub-consultas na Cláusula HAVING
+
+SELECT e1.department_id, MAX(e1.salary)
+FROM   employees e1
+GROUP BY e1.department_id
+HAVING MAX(salary) <  (SELECT AVG(e2.salary)
+                       FROM   employees e2);
+```
+
+```sql
+-- O que ocorre quando a Sub-Consulta retorna nenhuma linha?
+
+SELECT employee_id, first_name, last_name
+FROM   employees
+WHERE  last_name =  (SELECT last_name
+                     FROM   employees
+                     WHERE  last_name = 'Suzuki');
+```
+
+---
+
+### RESUMO GEMINI
+
+## Resumo: Sub-Consultas Single-Row em Oracle SQL
+
+Sub-consultas "single-row" (linha única) são consultas aninhadas dentro de uma consulta principal (externa) que **retornam no máximo uma linha e uma coluna**. O valor retornado por essa sub-consulta é então utilizado pela consulta externa, geralmente em cláusulas como `WHERE`, `HAVING`, ou na lista de `SELECT`.
+
+A principal característica é que elas são projetadas para retornar um valor escalar único, que pode ser comparado com uma coluna ou expressão na consulta externa. Se uma sub-consulta single-row retornar mais de uma linha, um erro Oracle será gerado (ORA-01427: single-row subquery returns more than one row).
+
+**Operadores Comuns Utilizados com Sub-Consultas Single-Row:**
+
+Os operadores de comparação padrão são frequentemente usados com sub-consultas single-row:
+* `=` (Igual a)
+* `>` (Maior que)
+* `<` (Menor que)
+* `>=` (Maior ou igual a)
+* `<=` (Menor ou igual a)
+* `<>` ou `!=` (Diferente de)
+
+**Exemplo Conceitual:**
+
+```sql
+SELECT nome_funcionario, salario
+FROM   funcionarios
+WHERE  salario = (SELECT AVG(salario)
+                  FROM   funcionarios
+                  WHERE  departamento_id = 10);
+```
+
+Neste exemplo, `(SELECT AVG(salario) FROM funcionarios WHERE departamento_id = 10)` é uma sub-consulta single-row que retorna a média salarial do departamento 10. Este valor único é então usado para encontrar funcionários cujo salário é igual a essa média.
+
+---
+### Boas Práticas 👍
+
+1.  **Garantir Retorno Único:** Certifique-se de que a lógica da sub-consulta realmente retornará no máximo uma linha. Use funções de agregação (`MAX`, `MIN`, `AVG`, `SUM`, `COUNT`) ou condições `WHERE` restritivas (como `WHERE ROWNUM = 1` ou `WHERE chave_primaria = valor`) se necessário para garantir isso.
+2.  **Clareza e Legibilidade:** Use sub-consultas single-row quando elas tornarem a consulta mais fácil de entender em comparação com joins complexos ou outras abordagens. Comente o propósito da sub-consulta se a lógica não for imediatamente óbvia.
+3.  **Uso em Cláusulas Apropriadas:** São ideais para comparações em `WHERE` e `HAVING`, ou para buscar um valor específico na lista de `SELECT`.
+4.  **Performance:** Para sub-consultas simples e que não são executadas repetidamente (não correlacionadas), o impacto na performance geralmente é aceitável.
+5.  **Testes:** Sempre teste a sub-consulta isoladamente para verificar se ela retorna o resultado esperado (uma única linha e coluna) antes de integrá-la à consulta principal.
+
+### Más Práticas 👎
+
+1.  **Risco de Múltiplas Linhas:** Escrever sub-consultas que *poderiam* acidentalmente retornar múltiplas linhas sem tratamento adequado. Isso causa o erro `ORA-01427`.
+2.  **Retorno de Múltiplas Colunas:** Tentar usar uma sub-consulta single-row em um contexto que espera um único valor escalar, mas a sub-consulta seleciona múltiplas colunas. (Ex: `WHERE coluna = (SELECT col1, col2 FROM ...)`).
+3.  **Nulos Inesperados:** Se a sub-consulta não retornar nenhuma linha, ela retornará `NULL`. Isso pode levar a resultados inesperados na consulta externa se não for tratado (por exemplo, `salario = NULL` não se comporta como `salario = 0`). Use `NVL` ou `COALESCE` se necessário.
+4.  **Complexidade Excessiva:** Evite aninhar múltiplas sub-consultas single-row de forma que a consulta se torne difícil de ler e depurar. Às vezes, um `JOIN` pode ser mais eficiente e legível.
+5.  **Sub-consultas Correlacionadas Ineficientes:** Embora sub-consultas single-row possam ser correlacionadas (referenciando colunas da consulta externa), se mal escritas, podem levar a uma execução lenta, pois a sub-consulta pode ser executada para cada linha da consulta externa. Avalie se um `JOIN` seria mais performático.
+6.  **Uso Desnecessário:** Se o mesmo resultado puder ser alcançado de forma mais simples e direta (por exemplo, com uma variável em PL/SQL ou um `JOIN` simples), prefira a abordagem mais simples.
+
+--- 
+
+### 26 Oracle SQL - Sub-Consultas Multiple-row
+
+
+### 27 Oracle SQL - Utilizando operadores EXISTS e NOT EXISTS
+
+
+### 28 Oracle SQL - Utilizando Sub-consulta correlacionada
+
+
+
+### 29 Oracle SQL - Utilizando Sub-consultas Multiple-Column
+
+
+
+### 30 Oracle SQL - Utilizando Sub-consultas na Cláusula FROM
 
 [Voltar ao Índice](#indice)
 
