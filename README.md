@@ -4180,7 +4180,81 @@ Existem duas formas principais de utilizar sub-consultas multiple-column:
 
 ### 30 Oracle SQL - Utilizando Sub-consultas na Cláusula FROM
 
+[Seção+12+-+Prática+Aula+6.sql](recursos/Se%C3%A7%C3%A3o%2B12%2B-%2BPr%C3%A1tica%2BAula%2B6.sql)
 
+```sql
+-- Utilizando Sub-Consultas na Cláusula FROM
+
+SELECT empregados.employee_id, empregados.first_name, empregados.last_name, empregados.job_id, 
+       empregados.salary, ROUND(max_salary_job.max_salary,2) MAX_SALARY, empregados.salary - ROUND(max_salary_job.max_salary,2) DIFERENÇA
+FROM   employees empregados
+  LEFT JOIN (SELECT  e2.job_id, MAX(e2.salary) max_salary
+             FROM     employees e2
+             GROUP by e2.job_id) max_salary_job
+       ON empregados.job_id = max_salary_job.job_id;
+```
+
+--- 
+### RESUMO GEMINI
+
+Uma **sub-consulta na cláusula `FROM`**, também conhecida como **inline view** (visão em linha) ou **derived table** (tabela derivada), é uma consulta `SELECT` aninhada diretamente na cláusula `FROM` da consulta principal. Essencialmente, o resultado dessa sub-consulta é tratado como uma tabela temporária ou uma visão que existe apenas durante a execução da consulta principal. A consulta externa pode então selecionar colunas, aplicar filtros e juntar essa "tabela virtual" com outras tabelas.
+
+**Como Funciona:**
+
+1.  A sub-consulta na cláusula `FROM` é executada primeiro.
+2.  O conjunto de resultados gerado por essa sub-consulta é materializado (conceitualmente) como uma tabela.
+3.  A consulta externa então opera sobre essa tabela resultante como se fosse uma tabela normal no banco de dados.
+
+É **obrigatório** que uma sub-consulta na cláusula `FROM` tenha um **alias** (um nome temporário), para que suas colunas possam ser referenciadas pela consulta externa.
+
+**Exemplo Conceitual:**
+
+```sql
+SELECT
+    dept_avg.nome_departamento,
+    dept_avg.media_salarial_depto,
+    e.nome_funcionario,
+    e.salario
+FROM
+    funcionarios e
+JOIN
+    (SELECT -- Esta é a sub-consulta na cláusula FROM (inline view)
+        d.id_departamento,
+        d.nome_departamento,
+        AVG(emp.salario) AS media_salarial_depto
+     FROM
+        departamentos d
+     JOIN
+        funcionarios emp ON d.id_departamento = emp.id_departamento
+     GROUP BY
+        d.id_departamento, d.nome_departamento
+    ) dept_avg ON e.id_departamento = dept_avg.id_departamento -- Alias "dept_avg" é usado aqui
+WHERE
+    e.salario > dept_avg.media_salarial_depto;
+```
+
+Neste exemplo, a sub-consulta `dept_avg` primeiro calcula a média salarial para cada departamento. A consulta externa então junta a tabela `funcionarios` com este resultado para encontrar funcionários que ganham mais que a média de seu respectivo departamento.
+
+---
+### Boas Práticas 👍
+
+1.  **Sempre Use um Alias:** É mandatório e essencial para referenciar as colunas da inline view na consulta principal. Escolha nomes de alias significativos.
+2.  **Simplificar Consultas Complexas:** Utilize inline views para quebrar lógicas complexas em etapas menores e mais gerenciáveis, melhorando a legibilidade.
+3.  **Pré-Agregar Dados:** São muito úteis para realizar agregações (`SUM`, `AVG`, `COUNT`, etc.) e depois usar esses resultados agregados em junções ou filtros na consulta externa.
+4.  **Limitar Colunas e Linhas Cedo:** Dentro da sub-consulta, selecione apenas as colunas necessárias e filtre as linhas o máximo possível para reduzir o tamanho do conjunto de dados intermediário.
+5.  **Clareza na Formatação:** Indente a sub-consulta e formate-a de maneira clara para que seja fácil distinguir da consulta principal.
+6.  **Considerar CTEs (Common Table Expressions):** Para consultas com múltiplas sub-consultas na cláusula `FROM` ou para lógicas sequenciais mais complexas, CTEs (cláusula `WITH`) podem oferecer melhor legibilidade e, em alguns casos, melhor desempenho ou organização.
+
+### Más Práticas 👎
+
+1.  **Omitir o Alias:** Isso resultará em um erro de sintaxe.
+2.  **Complexidade Excessiva:** Aninhar múltiplas inline views ou criar sub-consultas muito grandes e complexas na cláusula `FROM` pode tornar a consulta difícil de ler, depurar e otimizar.
+3.  **Performance:** Embora o otimizador do Oracle seja sofisticado, inline views complexas ou que retornam muitos dados podem impactar o desempenho. Certifique-se de que a sub-consulta em si seja eficiente.
+4.  **Redundância:** Evite usar inline views se a mesma lógica puder ser alcançada de forma mais simples e direta com `JOINs` padrão ou sub-consultas em outras cláusulas (como `WHERE` ou `SELECT`).
+5.  **Selecionar Colunas Desnecessárias:** Incluir colunas na sub-consulta que não são usadas pela consulta externa aumenta o processamento desnecessariamente.
+6.  **Não Testar Isoladamente:** Deixar de testar a sub-consulta da cláusula `FROM` de forma isolada para garantir que ela retorna os dados esperados antes de integrá-la à consulta principal.
+
+---
 
 
 [Voltar ao Índice](#indice)
