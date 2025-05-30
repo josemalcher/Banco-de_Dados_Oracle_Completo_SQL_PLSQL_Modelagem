@@ -4108,7 +4108,75 @@ Neste exemplo, para cada empregado `e` da tabela `empregados`, a sub-consulta ca
 
 ### 29 Oracle SQL - Utilizando Sub-consultas Multiple-Column
 
+[Seção+12+-+Prática+Aula+5.sql](recursos/Se%C3%A7%C3%A3o%2B12%2B-%2BPr%C3%A1tica%2BAula%2B5.sql)
 
+```sql
+-- Utilizando Sub-consultas Multiple-Column 
+
+SELECT e1.employee_id, e1.first_name, e1.job_id, e1.salary
+FROM   employees e1
+WHERE (e1.job_id, e1.salary) IN (SELECT   e2.job_id, MAX(e2.salary)
+                                 FROM     employees e2
+                                 GROUP by e2.job_id);
+								 
+```
+
+---
+RESUMO GEMINI
+
+**Sub-consultas multiple-column** (múltiplas colunas) são consultas aninhadas que retornam **duas ou more colunas por linha**. Elas são usadas para comparar múltiplos valores de uma linha da consulta externa com os múltiplos valores de uma linha (ou conjunto de linhas) retornados pela sub-consulta.
+
+Existem duas formas principais de utilizar sub-consultas multiple-column:
+
+1.  **Comparações Pairwise (linha a linha) na Cláusula `WHERE` ou `HAVING`**:
+    * Neste caso, a sub-consulta deve retornar **no máximo uma linha**, mas com múltiplas colunas. Os valores das colunas da consulta externa são comparados em pares com os valores das colunas correspondentes da única linha retornada pela sub-consulta.
+    * A sintaxe comum envolve agrupar as colunas entre parênteses.
+    * **Exemplo:**
+        ```sql
+        SELECT nome_funcionario, cargo, salario
+        FROM   funcionarios
+        WHERE  (cargo, salario) = (SELECT 'Gerente', MIN(salario)
+                                    FROM   funcionarios
+                                    WHERE  cargo = 'Gerente');
+        ```
+        (Seleciona o gerente com o menor salário entre os gerentes). Aqui, `(SELECT 'Gerente', MIN(salario) ...)` é uma sub-consulta single-row, multiple-column.
+
+2.  **Comparações de Tuplas (conjunto de valores) com o Operador `IN` na Cláusula `WHERE` ou `HAVING`**:
+    * Neste caso, a sub-consulta pode retornar **múltiplas linhas**, cada uma com múltiplas colunas. A consulta externa verifica se a combinação de valores de suas colunas (uma tupla) existe em alguma das tuplas (linhas) retornadas pela sub-consulta.
+    * **Exemplo:**
+        ```sql
+        SELECT f.nome_funcionario, f.cargo, f.departamento_id
+        FROM   funcionarios f
+        WHERE  (f.cargo, f.departamento_id) IN (SELECT cargo_chave, id_depto_alvo
+                                               FROM   cargos_estrategicos);
+        ```
+        (Seleciona funcionários cujo par (cargo, departamento_id) corresponde a um dos pares de (cargo\_chave, id\_depto\_alvo) na tabela `cargos_estrategicos`).
+
+**Pontos Importantes:**
+
+* O **número de colunas** na lista de colunas da consulta externa deve ser igual ao número de colunas na lista de `SELECT` da sub-consulta.
+* As **colunas devem ser correspondentes em tipo de dados** ou ser implicitamente conversíveis.
+* A **ordem das colunas** é importante na comparação.
+
+---
+
+### Boas Práticas 👍
+
+1.  **Clareza para Comparações de Tuplas:** Use sub-consultas multiple-column quando a lógica de comparar um conjunto de colunas com outro conjunto for a forma mais natural e clara de expressar a condição.
+2.  **Garantir Correspondência de Colunas:** Sempre verifique se o número e a ordem das colunas na consulta externa e na sub-consulta coincidem e se os tipos de dados são compatíveis.
+3.  **Indexação:** Para um bom desempenho, especialmente com o operador `IN` e grandes conjuntos de dados, as colunas envolvidas na comparação (tanto na consulta externa quanto na sub-consulta) devem ser indexadas. Considere índices compostos se apropriado.
+4.  **Use para Comparações Pairwise Lógicas:** Quando você precisa encontrar uma linha que corresponda a um conjunto específico de valores derivados (por exemplo, o funcionário que tem o mesmo cargo e departamento que um funcionário específico, onde esse cargo e departamento são obtidos por uma sub-consulta single-row, multiple-column).
+5.  **Mantenha a Sub-consulta Simples:** Se a sub-consulta se tornar excessivamente complexa, avalie se `JOINs` ou outras abordagens poderiam ser mais legíveis ou performáticas.
+
+### Más Práticas 👎
+
+1.  **Mismatch no Número ou Ordem de Colunas:** Ter um número diferente de colunas ou uma ordem incorreta nas listas de colunas da consulta externa e da sub-consulta resultará em erro (`ORA-00913: too many values` ou `ORA-01722: invalid number` se os tipos não baterem devido à ordem).
+2.  **Tipos de Dados Incompatíveis:** Tentar comparar colunas com tipos de dados que não podem ser implicitamente convertidos levará a erros.
+3.  **Sub-consultas que Retornam Múltiplas Linhas em Comparações Pairwise:** Se uma sub-consulta usada para comparação pairwise (com `=, <>, >, <, <=, >=`) retornar mais de uma linha, ocorrerá o erro `ORA-01427: single-row subquery returns more than one row`.
+4.  **Desempenho com `IN` e Grandes Conjuntos:** Usar `(col1, col2, ...) IN (subconsulta_multiple_column)` com sub-consultas que retornam um volume muito grande de tuplas pode ser menos performático do que alternativas como `EXISTS` com uma sub-consulta correlacionada ou `JOINs`. Teste o desempenho em cenários realistas.
+5.  **Complexidade Excessiva:** Evite construir sub-consultas multiple-column excessivamente complexas que dificultem a leitura e a manutenção. Às vezes, dividir a lógica em etapas ou usar `JOINs` pode ser preferível.
+6.  **Ignorar `NULL`s:** O comportamento de comparações de tuplas com `NULL`s pode ser sutil. Por exemplo, `(1, NULL) IN ((1,2), (1, NULL))` pode não se comportar como esperado em todas as situações, dependendo das configurações do banco. Geralmente, uma tupla não corresponderá a outra se houver `NULL`s envolvidos na comparação de igualdade, a menos que ambas as partes da comparação sejam `NULL`.
+---
 
 ### 30 Oracle SQL - Utilizando Sub-consultas na Cláusula FROM
 
