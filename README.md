@@ -4036,7 +4036,75 @@ Este exemplo seleciona nomes de clientes que *não possuem* nenhum pedido regist
 
 ### 28 Oracle SQL - Utilizando Sub-consulta correlacionada
 
+[Seção+12+-+Prática+Aula+4.sql](recursos/Se%C3%A7%C3%A3o%2B12%2B-%2BPr%C3%A1tica%2BAula%2B4.sql)
 
+```sql
+-- Utilizando Sub-Consultas Correlacionadas
+               
+SELECT e1.employee_id, e1.first_name, e1.last_name, e1.department_id, e1.salary
+FROM   employees e1
+WHERE  e1.salary >= (SELECT    TRUNC(AVG(NVL(salary,0)),0)
+                     FROM      employees e2
+                     WHERE     e1.department_id = e2.department_id);
+                   
+SELECT    TRUNC(AVG(NVL(salary,0)),0)
+FROM      employees e2
+WHERE     e2.department_id = 60;
+```
+
+---
+RESUMO GEMINI
+
+Uma **sub-consulta correlacionada** é uma consulta aninhada (interna) que depende de valores da consulta externa para sua execução. Diferentemente de uma sub-consulta simples (não correlacionada), que é executada uma vez e seu resultado é usado pela consulta externa, uma sub-consulta correlacionada é, conceitualmente, **executada repetidamente, uma vez para cada linha processada pela consulta externa**.
+
+A "correlação" ocorre porque a sub-consulta interna faz referência a uma ou mais colunas da tabela que está sendo processada na consulta externa. Essa referência cria um vínculo entre as duas consultas.
+
+**Como Funciona:**
+
+1.  A consulta externa lê uma linha.
+2.  Os valores das colunas referenciadas dessa linha da consulta externa são passados para a sub-consulta interna.
+3.  A sub-consulta interna é executada usando esses valores.
+4.  O resultado da sub-consulta interna é então usado pela consulta externa para completar a avaliação da condição (no `WHERE` ou `HAVING`) ou para calcular um valor (se a sub-consulta estiver na lista de `SELECT`) para a linha atual da consulta externa.
+5.  O processo se repete para a próxima linha da consulta externa.
+
+**Onde São Usadas:**
+
+* **Cláusula `WHERE`**: Para filtrar linhas da consulta externa com base em uma condição que depende de dados relacionados na sub-consulta para cada linha. Frequentemente usadas com `EXISTS`, `NOT EXISTS`, `IN`, ou operadores de comparação.
+* **Cláusula `SELECT`**: Para retornar um valor calculado ou buscado pela sub-consulta para cada linha da consulta externa (neste caso, a sub-consulta deve ser escalar, ou seja, retornar no máximo uma linha e uma coluna).
+* **Cláusula `HAVING`**: Similar ao `WHERE`, mas para filtrar grupos após a agregação.
+
+**Exemplo Conceitual:**
+
+```sql
+SELECT e.nome_empregado, e.salario, e.id_departamento
+FROM   empregados e
+WHERE  e.salario > (SELECT AVG(s.salario)
+                    FROM   empregados s
+                    WHERE  s.id_departamento = e.id_departamento); -- Correlação aqui
+```
+
+Neste exemplo, para cada empregado `e` da tabela `empregados`, a sub-consulta calcula o salário médio (`AVG(s.salario)`) *apenas* para o departamento `s.id_departamento` que é igual ao departamento do empregado atual (`e.id_departamento`). A consulta externa então lista os empregados cujo salário é maior que a média de seu próprio departamento.
+
+---
+
+### Boas Práticas 👍
+
+1.  **Clareza para Problemas Específicos:** Use sub-consultas correlacionadas quando elas expressarem a lógica de forma mais clara do que alternativas como `JOINs` complexos, especialmente para verificações de "para cada linha X, faça Y".
+2.  **`EXISTS` e `NOT EXISTS`:** São frequentemente os casos de uso mais eficientes e legíveis para sub-consultas correlacionadas, especialmente para verificar a existência (ou não) de registros relacionados.
+3.  **Indexação:** As colunas usadas na cláusula `WHERE` da sub-consulta que criam a correlação com a consulta externa devem ser indexadas. Isso é crucial para o desempenho, pois a sub-consulta é executada muitas vezes.
+4.  **Escopo Pequeno da Sub-consulta:** Tente garantir que a sub-consulta correlacionada precise processar o menor conjunto de dados possível a cada execução. Filtros adicionais dentro da sub-consulta (além da condição de correlação) podem ajudar.
+5.  **Teste Cuidadoso:** Teste a lógica da correlação exaustivamente com diferentes cenários de dados para garantir que ela produz os resultados corretos. Teste a sub-consulta isoladamente (substituindo as colunas de correlação por valores literais) para entender seu comportamento.
+
+### Más Práticas 👎
+
+1.  **Impacto no Desempenho:** Por serem executadas repetidamente, sub-consultas correlacionadas mal escritas ou usadas em tabelas muito grandes sem indexação adequada podem levar a um desempenho muito ruim.
+2.  **Uso Excessivo Quando `JOIN` é Melhor:** Muitas vezes, um `JOIN` (especialmente `INNER JOIN`, `LEFT JOIN`) pode alcançar o mesmo resultado de forma mais eficiente e, às vezes, mais legível do que uma sub-consulta correlacionada, principalmente se a sub-consulta estiver na lista de `SELECT`.
+3.  **Correlação Incorreta:** Erros na lógica da condição de correlação podem levar a resultados incorretos que podem ser difíceis de depurar. Certifique-se de que as colunas corretas estão sendo vinculadas.
+4.  **Sub-consultas na Lista de `SELECT` sem Garantia de Linha Única:** Se uma sub-consulta correlacionada na lista de `SELECT` retornar mais de uma linha para uma determinada linha da consulta externa, um erro Oracle (`ORA-01427: single-row subquery returns more than one row`) será gerado. Ela deve ser escalar.
+5.  **Complexidade Desnecessária:** Aninhar múltiplas sub-consultas correlacionadas ou criar correlações muito complexas pode tornar o SQL extremamente difícil de entender, manter e otimizar.
+6.  **Não Considerar Alternativas:** Antes de optar por uma sub-consulta correlacionada, avalie se funções analíticas (window functions) ou `JOINs` podem resolver o problema de forma mais eficiente ou elegante.
+
+---
 
 ### 29 Oracle SQL - Utilizando Sub-consultas Multiple-Column
 
