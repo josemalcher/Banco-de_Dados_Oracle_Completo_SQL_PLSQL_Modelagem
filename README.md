@@ -3827,6 +3827,118 @@ Neste exemplo, `(SELECT AVG(salario) FROM funcionarios WHERE departamento_id = 1
 
 ### 26 Oracle SQL - Sub-Consultas Multiple-row
 
+[Seção+12+-+Prática+Aula+2.sql](recursos/Se%C3%A7%C3%A3o%2B12%2B-%2BPr%C3%A1tica%2BAula%2B2.sql)
+
+- Possibilitam que a Sub-Consulta retorne mais do que uma linha
+- Utiliza o operadores de comparação multiple-row
+
+```sql
+-- Sub-Consultas Multiple-row
+
+SELECT employee_id, first_name, last_name
+FROM   employees
+WHERE  salary IN 
+                (SELECT    AVG(NVL(salary,0))
+                 FROM      employees
+                 GROUP BY  department_id);
+
+-- Utilizando operador NOT IN em Sub-consultas Multiple-Row
+
+SELECT employee_id, first_name, last_name
+FROM   employees
+WHERE  salary NOT IN
+                (SELECT    AVG(NVL(salary,0))
+                 FROM      employees
+                 GROUP BY  department_id);
+```
+
+```sql
+-- Utilizando operador ANY em Sub-consultas Multiple-Row
+
+SELECT employee_id, last_name, job_id, salary
+FROM   employees
+WHERE  salary < ANY
+                   (SELECT salary
+                    FROM   employees
+                    WHERE  job_id = 'IT_PROG');
+```
+
+```sql
+-- Utilizando operador ALL em Sub-consultas Multiple-Row
+
+SELECT employee_id, last_name, job_id, salary
+FROM   employees
+WHERE  salary < ALL
+                   (SELECT salary
+                    FROM   employees
+                    WHERE  job_id = 'IT_PROG');
+```
+
+```sql
+-- Cuidados com Valores Nulos em uma Sub-consulta com Operador IN
+
+SELECT emp.employee_id, emp.last_name
+FROM   employees emp
+WHERE  emp.employee_id IN (SELECT mgr.manager_id
+                           FROM employees mgr);
+
+-- Cuidados com Valores Nulos em uma Sub-consulta com Operador NOT IN
+
+SELECT emp.employee_id, emp.last_name
+FROM   employees emp
+WHERE  emp.employee_id NOT IN (SELECT mgr.manager_id
+                               FROM employees mgr);
+```
+
+---
+#### RESUMO GEMINI
+
+Para a aula **Seção 12: Oracle SQL - Utilizando Sub-Consultas - Aula 26 Sub-Consultas Multiple-Row**, segue o resumo e as boas e más práticas:
+
+## Resumo: Sub-Consultas Multiple-Row em Oracle SQL
+
+Sub-consultas "multiple-row" (múltiplas linhas) são consultas aninhadas que **podem retornar uma ou mais linhas, mas devem retornar apenas uma coluna** para serem usadas com operadores de comparação específicos. Esses operadores são projetados para comparar um valor da consulta externa com um conjunto de valores (a lista de valores retornada pela sub-consulta).
+
+Os principais operadores utilizados com sub-consultas multiple-row são:
+
+* **`IN`**: Compara se um valor da consulta externa é igual a **qualquer um** dos valores retornados pela sub-consulta.
+    * Exemplo: `SELECT nome_produto FROM produtos WHERE id_categoria IN (SELECT id FROM categorias WHERE nome_setor = 'Eletrônicos');`
+        (Seleciona produtos cuja categoria está na lista de categorias do setor de Eletrônicos).
+
+* **`ANY`**: Compara um valor da consulta externa com **cada valor** retornado pela sub-consulta usando um operador de comparação (`=`, `>`, `<`, `>=`, `<=`, `<>`). A condição é verdadeira se a comparação for verdadeira para **pelo menos um** dos valores retornados.
+    * `> ANY`: Maior que o mínimo valor retornado.
+    * `< ANY`: Menor que o máximo valor retornado.
+    * `= ANY`: Equivalente ao `IN`.
+    * Exemplo: `SELECT nome_funcionario, salario FROM funcionarios WHERE salario > ANY (SELECT salario_minimo FROM cargos WHERE departamento = 'Vendas');`
+        (Seleciona funcionários cujo salário é maior que *pelo menos um* dos salários mínimos dos cargos de Vendas, ou seja, maior que o menor salário mínimo de Vendas).
+
+* **`ALL`**: Compara um valor da consulta externa com **cada valor** retornado pela sub-consulta usando um operador de comparação. A condição é verdadeira somente se a comparação for verdadeira para **todos** os valores retornados.
+    * `> ALL`: Maior que o máximo valor retornado.
+    * `< ALL`: Menor que o mínimo valor retornado.
+    * Exemplo: `SELECT nome_produto, preco FROM produtos WHERE preco > ALL (SELECT preco_medio FROM concorrentes WHERE id_produto_similar = produtos.id);`
+        (Seleciona produtos cujo preço é maior que o preço médio de *todos* os seus concorrentes diretos).
+
+É crucial que a sub-consulta multiple-row retorne apenas uma coluna, pois os operadores (`IN`, `ANY`, `ALL`) esperam comparar valores da consulta externa com uma lista de valores únicos, e não com múltiplas colunas.
+
+---
+### Boas Práticas 👍
+
+1.  **Use o Operador Correto:** Escolha `IN`, `ANY` ou `ALL` com base na lógica de comparação exata que você precisa. `IN` é o mais comum e geralmente mais intuitivo.
+2.  **Garanta Uma Única Coluna:** A sub-consulta deve sempre selecionar apenas uma coluna. Múltiplas colunas resultarão em erro (`ORA-00913: too many values`).
+3.  **Clareza com `ANY` e `ALL`:** Ao usar `ANY` ou `ALL`, certifique-se de que a lógica da comparação (`>`, `<`, `=`) combinada com o operador seja clara. Comentar o código pode ser útil aqui. Por exemplo, `salario > ANY (subconsulta)` significa "salário maior que o menor valor da subconsulta".
+4.  **Alternativas para `NOT IN`:** Seja cauteloso com `NOT IN` se a sub-consulta puder retornar `NULL`. Se um dos valores retornados pela sub-consulta for `NULL`, a condição `NOT IN` inteira pode avaliar para `FALSE` ou `UNKNOWN`, não retornando as linhas esperadas. Considere usar `NOT EXISTS` ou `LEFT JOIN ... WHERE IS NULL` como alternativas mais seguras em tais cenários.
+5.  **Índices:** Para um bom desempenho, as colunas envolvidas na junção implícita (a coluna da consulta externa e a coluna retornada pela sub-consulta) devem ser indexadas, especialmente se as tabelas forem grandes.
+6.  **Teste Isolado:** Teste a sub-consulta isoladamente para verificar os valores que ela retorna e se são os esperados antes de integrá-la à consulta principal.
+
+### Más Práticas 👎
+
+1.  **Selecionar Múltiplas Colunas:** Uma sub-consulta usada com `IN`, `ANY` ou `ALL` não pode selecionar mais de uma coluna.
+2.  **Confundir `ANY` e `ALL`:** Usar `ANY` quando se quer dizer `ALL`, ou vice-versa, leva a resultados lógicos incorretos. Por exemplo, `salario > ALL (subconsulta)` é muito diferente de `salario > ANY (subconsulta)`.
+3.  **Ignorar `NULL`s com `NOT IN`:** Como mencionado, se a sub-consulta usada com `NOT IN` retornar qualquer valor `NULL`, nenhuma linha será retornada pela condição `NOT IN` (a menos que todas as outras comparações também falhem). Isso é uma armadilha comum.
+4.  **Sub-consultas Muito Grandes com `IN`:** Se a sub-consulta retornar um número muito grande de valores, o desempenho com `IN` pode degradar. Em alguns casos, um `JOIN` ou `EXISTS` pode ser mais eficiente. O Oracle geralmente otimiza bem, mas é algo a se observar.
+5.  **Uso de `!= ANY` ou `<> ANY`:** Embora sintaticamente válido, `!= ANY (subconsulta)` significa "diferente de pelo menos um valor". Se a sub-consulta tiver mais de um valor distinto (ou mesmo um, se não for o que se compara), isso quase sempre será verdadeiro. Muitas vezes, o que se deseja é `NOT IN` (que é `!= ALL` implicitamente) ou uma lógica diferente.
+6.  **Uso de `= ALL`:** Se uma sub-consulta retorna mais de um valor distinto, `= ALL` só será verdadeiro se todos esses valores distintos forem idênticos e iguais ao valor da consulta externa, o que é uma condição raramente útil ou intencional. Se a sub-consulta retorna um único valor, `= ALL` se comporta como `=`.
+---
 
 ### 27 Oracle SQL - Utilizando operadores EXISTS e NOT EXISTS
 
