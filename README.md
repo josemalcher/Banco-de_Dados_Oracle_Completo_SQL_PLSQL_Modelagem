@@ -3942,6 +3942,97 @@ Os principais operadores utilizados com sub-consultas multiple-row são:
 
 ### 27 Oracle SQL - Utilizando operadores EXISTS e NOT EXISTS
 
+[Seção+12+-+Prática+Aula+3.sql](recursos/Se%C3%A7%C3%A3o%2B12%2B-%2BPr%C3%A1tica%2BAula%2B3.sql)
+
+```sql
+
+-- Utilizando operador EXISTS
+
+SELECT d.department_id, d.department_name
+FROM   departments d
+WHERE  EXISTS
+             (SELECT e.department_id
+               FROM   employees e
+               WHERE d.department_id = 
+                             e.department_id);
+							 
+-- Utilizando operador EXISTS
+
+SELECT d.department_id, d.department_name
+FROM   departments d
+WHERE  EXISTS (SELECT e.department_id
+               FROM employees e
+               WHERE d.department_id = e.department_id);
+
+-- Utilizando operador NOT EXISTS
+
+SELECT d.department_id, d.department_name
+FROM   departments d
+WHERE  NOT EXISTS (SELECT e.department_id
+                   FROM employees e
+                   WHERE d.department_id = e.department_id);
+    
+```
+
+---
+#### RESUMO GEMINI
+
+Os operadores **`EXISTS`** e **`NOT EXISTS`** são utilizados em SQL para verificar se uma sub-consulta retorna alguma linha ou não. Eles são considerados operadores de "existência" e resultam em um valor booleano (verdadeiro ou falso).
+
+* **`EXISTS`**: A condição `EXISTS` é **verdadeira** se a sub-consulta aninhada a ela retornar **pelo menos uma linha**. Se a sub-consulta não retornar nenhuma linha, a condição `EXISTS` é falsa.
+* **`NOT EXISTS`**: A condição `NOT EXISTS` é **verdadeira** se a sub-consulta aninhada a ela **não retornar nenhuma linha**. Se a sub-consulta retornar pelo menos uma linha, a condição `NOT EXISTS` é falsa.
+
+**Características Principais:**
+
+1.  **Foco na Existência, Não nos Valores:** Diferentemente de `IN` ou operadores de comparação, `EXISTS` e `NOT EXISTS` não se importam com *quais* valores são retornados pela sub-consulta, apenas se *alguma* linha é retornada. Por isso, é comum usar `SELECT 1`, `SELECT '*''`, ou `SELECT NULL` na sub-consulta, pois o conteúdo selecionado é irrelevante para a lógica do `EXISTS`.
+2.  **Sub-consultas Correlacionadas:** Frequentemente, são usados com sub-consultas correlacionadas. Uma sub-consulta correlacionada é aquela que referencia uma ou mais colunas da consulta externa. A sub-consulta é, conceitualmente, reavaliada para cada linha da consulta externa.
+3.  **Avaliação "Curto-Circuito":** Assim que o SGBD determina que a condição é satisfeita (por exemplo, encontra a primeira linha para `EXISTS` ou confirma a ausência de linhas para `NOT EXISTS` após verificar todos os dados relevantes), ele pode parar de processar a sub-consulta para a linha atual da consulta externa.
+
+**Exemplo Conceitual com `EXISTS`:**
+
+```sql
+SELECT d.nome_departamento
+FROM   departamentos d
+WHERE  EXISTS (SELECT 1
+               FROM   funcionarios f
+               WHERE  f.departamento_id = d.id_departamento
+                 AND  f.salario > 100000);
+```
+
+Este exemplo seleciona nomes de departamentos onde *existe* pelo menos um funcionário naquele departamento com salário superior a 100.000.
+
+**Exemplo Conceitual com `NOT EXISTS`:**
+
+```sql
+SELECT c.nome_cliente
+FROM   clientes c
+WHERE  NOT EXISTS (SELECT 1
+                   FROM   pedidos p
+                   WHERE  p.cliente_id = c.id_cliente);
+```
+
+Este exemplo seleciona nomes de clientes que *não possuem* nenhum pedido registrado na tabela de pedidos.
+
+---
+### Boas Práticas 👍
+
+1.  **Use `SELECT 1` ou Similar na Sub-consulta:** Como os valores retornados pela sub-consulta são irrelevantes para `EXISTS`/`NOT EXISTS`, usar `SELECT 1`, `SELECT '*''` ou `SELECT NULL` é uma convenção comum e pode, em alguns casos, sinalizar ao otimizador (e a outros desenvolvedores) que apenas a existência de linhas é importante.
+2.  **Preferível a `IN` com Sub-consultas Grandes ou `NULL`s:**
+    * `NOT EXISTS` é geralmente mais eficiente e seguro do que `NOT IN` quando a sub-consulta pode retornar `NULL`s, pois `NOT IN` se comporta de maneira inesperada com `NULL`s.
+    * Para verificações de existência, `EXISTS` pode ser mais performático que `IN`, especialmente se a sub-consulta retorna muitas linhas, pois `EXISTS` para na primeira ocorrência.
+3.  **Clareza para Checagens de Existência:** Use `EXISTS` quando a intenção é verificar a presença de registros relacionados, e `NOT EXISTS` para verificar a ausência. Isso torna a intenção da consulta mais clara.
+4.  **Indexação em Colunas de Junção (Correlação):** Em sub-consultas correlacionadas com `EXISTS`/`NOT EXISTS`, as colunas usadas na cláusula `WHERE` da sub-consulta que se conectam à consulta externa devem ser bem indexadas para otimizar o desempenho.
+5.  **Combine com Lógica Adicional:** `EXISTS` e `NOT EXISTS` podem ser combinados com `AND`, `OR`, e `NOT` na cláusula `WHERE` principal para construir condições complexas.
+
+### Más Práticas 👎
+
+1.  **Selecionar Colunas Reais Desnecessariamente (`SELECT coluna_real`):** Embora funcione, selecionar colunas específicas da tabela interna (ex: `SELECT nome_funcionario FROM funcionarios ...`) dentro de um `EXISTS` é desnecessário e pode ser levemente menos eficiente, além de confundir quem lê o código, fazendo pensar que os valores da `coluna_real` são usados de alguma forma (eles não são). A exceção é se você precisa dessas colunas para outras partes da sub-consulta (ex: em um `WHERE` aninhado dentro da sub-consulta do `EXISTS`).
+2.  **Usar `COUNT(*)` Dentro do `EXISTS`:** Evite construções como `WHERE EXISTS (SELECT COUNT(*) FROM ... HAVING COUNT(*) > 0)`. A simples presença de uma linha já satisfaz `EXISTS`. A contagem é um trabalho extra desnecessário. Apenas `WHERE EXISTS (SELECT 1 FROM ...)` é suficiente.
+3.  **Sub-consultas Não Correlacionadas Ineficazes:** Se a sub-consulta dentro de `EXISTS` não for correlacionada e sempre retornar (ou nunca retornar) linhas, a condição `EXISTS` se tornará uma constante (sempre verdadeira ou sempre falsa), o que pode indicar um erro lógico ou uma forma ineficiente de escrever a consulta.
+4.  **Confundir com `IN`:** Não use `EXISTS` quando você realmente precisa comparar valores específicos. Se a lógica é "esta coluna é igual a um dos valores retornados pela sub-consulta?", então `IN` (ou `= ANY`) é mais apropriado.
+5.  **Má Otimização por Falta de Índices:** Não ter índices adequados nas colunas de correlação pode levar a varreduras completas da tabela interna para cada linha da tabela externa, resultando em péssimo desempenho.
+
+---
 
 ### 28 Oracle SQL - Utilizando Sub-consulta correlacionada
 
@@ -3952,6 +4043,9 @@ Os principais operadores utilizados com sub-consultas multiple-row são:
 
 
 ### 30 Oracle SQL - Utilizando Sub-consultas na Cláusula FROM
+
+
+
 
 [Voltar ao Índice](#indice)
 
