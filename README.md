@@ -4264,6 +4264,178 @@ Neste exemplo, a sub-consulta `dept_avg` primeiro calcula a média salarial para
 
 ## <a name="parte13">13 - Seção 13: Oracle SQL - Operadores SET</a>
 
+31. Oracle SQL - Operadores SET
+
+[Seção+13+-+Prática+Aula+1.sql](recursos/Se%C3%A7%C3%A3o%2B13%2B-%2BPr%C3%A1tica%2BAula%2B1.sql)
+
+![img.png](img/31_1-operadores-set.png)
+
+![img.png](img/31_2_diretrizes-SET.png)
+
+![img.png](img/31_2_diretrizes-SET2.png)
+
+---
+
+### RESUMO GEMINI
+
+Aqui está a lista de diretrizes atualizada e explicada:
+
+### Diretrizes para Utilização de Operadores SET
+
+* O número de colunas ou expressões na lista de colunas ou expressões em cada SELECT devem ser iguais.
+* O tipo de dado de cada coluna ou expressão na lista de colunas ou expressions em cada SELECT respectivamente devem combinar.
+* **Linhas duplicadas são automaticamente eliminadas, exceto pelo pelo operador UNION ALL**.
+* **São os nomes de colunas da primeira consulta que aparecem no cabeçalho do resultado**.
+* Parênteses podem ser utilizados para alterar a sequência de execução.
+* A cláusula ORDER BY deve ser somente para o resultado final.
+
+### Explicação Detalhada das Diretrizes
+
+#### Número Igual de Colunas
+Cada instrução `SELECT` que você combina com um operador `SET` **precisa ter exatamente o mesmo número de colunas**. O banco de dados une os resultados verticalmente, e se uma consulta tivesse um número diferente de colunas, o alinhamento dos dados seria impossível, resultando em erro.
+
+***
+
+#### Tipos de Dados Combinando
+As colunas em cada `SELECT` devem corresponder em **tipo de dado**. A primeira coluna do primeiro `SELECT` deve ser compatível com a primeira do segundo, a segunda com a segunda, e assim por diante.
+* **Boas Práticas 👍**: Use funções de conversão explícita (como `TO_CHAR()`) se precisar combinar colunas de tipos diferentes.
+
+***
+
+#### Eliminação de Linhas Duplicadas
+Por padrão, os operadores `UNION`, `INTERSECT` e `MINUS` realizam uma operação implícita de `DISTINCT` para eliminar todas as linhas duplicadas antes de apresentar o resultado final. A única exceção é o `UNION ALL`, que mantém todas as linhas, incluindo as duplicatas.
+* **Boas Práticas 👍**: Se a performance for crucial e você não precisar remover duplicatas, sempre prefira `UNION ALL` a `UNION`, pois ele evita o trabalho extra de verificação.
+
+***
+
+#### Nomes das Colunas no Resultado
+O cabeçalho do conjunto de resultados final é determinado pelos nomes das colunas ou pelos aliases da **primeira instrução `SELECT`** da sua consulta. Nomes ou aliases de colunas em `SELECT`s subsequentes são ignorados no cabeçalho final.
+* **Boas Práticas 👍**: Defina aliases claros e descritivos na primeira instrução `SELECT` para garantir que o resultado final seja fácil de entender. Por exemplo: `SELECT nome AS "Nome do Cliente" FROM TabelaA UNION SELECT nome_contato FROM TabelaB;`. O cabeçalho será "Nome do Cliente".
+
+***
+
+#### Parênteses para Alterar a Sequência
+Ao misturar operadores `SET`, use parênteses para ditar a ordem de execução e garantir a lógica correta. A parte da consulta dentro dos parênteses será executada primeiro.
+* **Boas Prásticas 👍**: É uma boa prática sempre usar parênteses ao misturar operadores para não depender da ordem de precedência padrão e tornar a consulta mais legível.
+
+***
+
+#### Cláusula `ORDER BY` no Final
+A cláusula `ORDER BY` serve para ordenar o resultado final e combinado. Por isso, ela só pode aparecer **uma vez, no final** de toda a instrução.
+* **Boas Práticas 👍**: Você pode ordenar usando o nome do alias definido no primeiro `SELECT` ou pela posição da coluna (ex: `ORDER BY 1`).
+
+---
+
+#### Utilizando a cláusula ORDER BY em SELECTs com operadores SET
+
+* A cláusula ORDER BY somente pode aparecer no final da consulta resultante
+* As consultas componentes não podem ter cláusula ORDER BY individual
+* Na cláusula ORDER BY referencie somente as colunas ou expressões do primeiro SELECT
+
+---
+### Explicação das Regras do `ORDER BY` com Operadores SET
+
+Aqui está o detalhamento de cada uma das regras, que são essenciais para ordenar os resultados de consultas que utilizam `UNION`, `UNION ALL`, `INTERSECT` ou `MINUS`.
+
+***
+
+#### 1. `ORDER BY` Apenas no Final da Consulta
+
+A cláusula `ORDER BY` é projetada para ordenar o **resultado final e combinado** de todas as operações SET. Ela não pode ser aplicada a cada consulta individualmente, pois o banco de dados primeiro precisa juntar todos os resultados para depois poder classificá-los como um conjunto único.
+
+* **Boas Práticas** 👍: Sempre posicione a cláusula `ORDER BY` como a última linha de toda a sua instrução SQL, após o último `SELECT`.
+    ```sql
+    SELECT nome, sobrenome FROM tabela_a
+    UNION
+    SELECT nome_contato, sobrenome_contato FROM tabela_b
+    ORDER BY 1;
+    ```
+
+* **Más Práticas** 👎: Tentar ordenar cada consulta antes de uni-las. O código abaixo resultará em um erro de sintaxe.
+    ```sql
+    -- INCORRETO
+    SELECT nome, sobrenome FROM tabela_a ORDER BY nome
+    UNION
+    SELECT nome_contato, sobrenome_contato FROM tabela_b ORDER BY nome_contato;
+    ```
+
+***
+
+#### 2. Consultas Componentes Sem `ORDER BY`
+
+Este ponto reforça a primeira regra: as consultas individuais (ou "componentes") que formam a união **não podem ter sua própria cláusula `ORDER BY`**. Tentar fazer isso viola a sintaxe do SQL para operadores SET.
+
+* **Boas Práticas** 👍: Se você precisar de uma ordenação intermediária complexa, considere usar uma subconsulta na cláusula `FROM` ou uma CTE (Common Table Expression), mas para operadores SET diretos, a regra é clara: sem `ORDER BY` no meio do caminho.
+
+* **Más Práticas** 👎: Envolver uma consulta em parênteses na esperança de "enganar" a regra e aplicar uma ordenação individual. Isso não funciona com operadores SET e apenas torna o código inválido e confuso.
+
+***
+
+#### 3. Referenciar Colunas do Primeiro `SELECT`
+
+O cabeçalho (nomes e aliases das colunas) do resultado final é **sempre definido pela primeira instrução `SELECT`**. Consequentemente, a cláusula `ORDER BY` só pode se referir aos nomes ou aliases de colunas dessa primeira consulta.
+
+* **Boas Práticas** 👍:
+    * **Use aliases claros no primeiro `SELECT`** e utilize esses mesmos aliases no `ORDER BY` para máxima legibilidade.
+    * **Use a notação posicional** (`ORDER BY 1, 2 DESC`), que é concisa e funciona independentemente dos nomes das colunas.
+    ```sql
+    SELECT nome AS "Nome Completo", data_cadastro FROM clientes
+    UNION
+    SELECT contato, data_inclusao FROM fornecedores
+    ORDER BY "Nome Completo"; -- Correto, usando o alias do primeiro SELECT.
+    ```
+* **Más Práticas** 👎: Tentar ordenar por um nome de coluna ou alias que só existe na segunda consulta (ou em consultas subsequentes). O código abaixo resultará em um erro de "identificador inválido".
+    ```sql
+    -- INCORRETO
+    SELECT nome AS "Nome Completo" FROM clientes
+    UNION
+    SELECT contato AS nome_fornecedor FROM fornecedores
+    ORDER BY nome_fornecedor; -- Erro: "nome_fornecedor" não existe no cabeçalho final.
+    ```
+---
+
+#### Utilizando o operador UNION
+* O operador UNION retorna linhas de ambas as consultas após eliminar as linhas duplicadas
+
+---
+### O Operador `UNION`
+
+O operador `UNION` é usado para combinar os resultados de duas ou mais instruções `SELECT` em um único conjunto de resultados. Sua principal característica é que ele **automaticamente remove todas as linhas duplicadas** do resultado final. Para que uma linha seja considerada duplicada, os valores em todas as colunas selecionadas devem ser idênticos aos de outra linha.
+
+Essa eliminação de duplicatas é, na prática, uma operação `DISTINCT` realizada no conjunto de dados combinado.
+
+**Exemplo:**
+Se a `tabela_A` tem as linhas (1, 2) e a `tabela_B` tem as linhas (2, 3), o resultado de `(SELECT * FROM tabela_A) UNION (SELECT * FROM tabela_B)` seria:
+```
+1
+2
+3
+```
+A linha com o valor `2` aparece apenas uma vez, pois a duplicata foi removida.
+
+## Boas e Más Práticas
+
+#### 👍 Boas Práticas
+* **Use para Listas Únicas**: Utilize o `UNION` quando o objetivo é obter uma lista de valores únicos a partir de fontes que podem ter dados sobrepostos. Por exemplo, criar uma lista única de todos os clientes de 2023 e 2024.
+* **Clareza de Intenção**: Usar `UNION` deixa claro para outros desenvolvedores que a remoção de duplicatas é um requisito intencional da consulta.
+
+#### 👎 Más Práticas
+* **Uso Desnecessário (Problema de Performance)**: A má prática mais comum é usar `UNION` por padrão quando `UNION ALL` seria suficiente. O processo de verificação e eliminação de duplicatas consome recursos e tempo. Se você sabe que as consultas não produzirão duplicatas, ou se as duplicatas são aceitáveis, **sempre prefira `UNION ALL` para um melhor desempenho**.
+* **Mascarar Problemas de Dados**: Utilizar `UNION` para "limpar" dados duplicados pode, em alguns casos, esconder problemas na qualidade dos dados ou na lógica da aplicação que deveriam ser corrigidos na origem.
+* **Uso com Tipos LOB**: O `UNION` não pode ser usado com colunas de tipos de dados LOB (`BLOB`, `CLOB`, etc.), pois a operação de `DISTINCT` não é suportada para esses tipos. Nesse caso, `UNION ALL` seria a única opção.
+
+```sql
+-- Utilizando o operador UNION 
+
+SELECT employee_id, job_id, hire_date, salary
+FROM   employees
+WHERE  department_id IN (60, 90, 100)
+UNION
+SELECT employee_id, job_id, hire_date, salary
+FROM   employees
+WHERE  job_id = 'IT_PROG'
+ORDER BY employee_id;
+```
 
 
 [Voltar ao Índice](#indice)
