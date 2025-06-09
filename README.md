@@ -4436,6 +4436,176 @@ FROM   employees
 WHERE  job_id = 'IT_PROG'
 ORDER BY employee_id;
 ```
+---
+
+#### Utilizando o operador UNION ALL
+* O operador UNION ALL retorna linhas de ambas as consultas, incluindo todas as linhas duplicadas
+
+---
+### O Operador `UNION ALL`
+
+O operador `UNION ALL` combina os resultados de duas ou mais instruções `SELECT` em um único conjunto de resultados. A sua principal característica, e a que o diferencia do `UNION`, é que ele **inclui todas as linhas de ambas as consultas, sem eliminar as duplicatas**.
+
+Por não precisar verificar e remover linhas duplicadas, o `UNION ALL` é **significativamente mais rápido** e consome menos recursos do que o `UNION`, tornando-o a escolha preferencial em muitos cenários.
+
+**Exemplo:**
+Se a `tabela_A` tem as linhas (1, 2) e a `tabela_B` tem as linhas (2, 3), o resultado de `(SELECT * FROM tabela_A) UNION ALL (SELECT * FROM tabela_B)` seria:
+```
+1
+2
+2
+3
+```
+A linha com o valor `2` aparece duas vezes, pois nenhuma duplicata foi removida.
+
+### Boas e Más Práticas
+
+#### 👍 Boas Práticas
+* **Preferência por Performance**: Use `UNION ALL` como sua escolha padrão sempre que não houver a necessidade estrita de remover linhas duplicadas. Essa é a melhor prática mais importante para otimização de consultas.
+* **Dados que Não se Sobrepõem**: É ideal quando você sabe que as consultas que está unindo já retornam conjuntos de dados mutuamente exclusivos.
+* **Análise de Dados Completos**: Utilize quando for importante manter todas as ocorrências de um registro para fins de contagem, auditoria ou análise estatística.
+* **Compatibilidade com LOBs**: Ao contrário do `UNION`, o `UNION ALL` pode ser usado com colunas de tipos de dados LOB (`CLOB`, `BLOB`, `NCLOB`), pois não realiza a operação de `DISTINCT`.
+
+#### 👎 Más Práticas
+* **Gerar Listas Inválidas**: A pior prática é usar `UNION ALL` quando o requisito do negócio é uma lista de itens únicos (por exemplo, uma lista de clientes distintos). Isso pode levar a relatórios com contagens incorretas e dados enganosos.
+* **Ignorar a Necessidade de Unicidade**: Usá-lo por hábito sem analisar se o resultado final precisa ou não de valores únicos. Sempre se questione: "As duplicatas são aceitáveis ou desejáveis aqui?". Se a resposta for não, use `UNION`.
+
+```sql
+-- Utilizando o operador UNION ALL
+
+SELECT employee_id, job_id, hire_date, salary
+FROM   employees
+WHERE  job_id = 'IT_PROG'
+UNION ALL
+SELECT employee_id, job_id, hire_date, salary
+FROM   employees
+WHERE  department_id = 60
+ORDER BY employee_id;
+
+```
+---
+
+### O Operador `INTERSECT`
+
+O operador `INTERSECT` compara os resultados de duas ou mais instruções `SELECT` e retorna **apenas as linhas que são comuns a todas as consultas**. Como o Diagrama de Venn da imagem ilustra perfeitamente, ele retorna apenas a área de sobreposição entre os conjuntos de dados.
+
+Assim como o `UNION`, o `INTERSECT` também elimina automaticamente as linhas duplicadas do resultado final.
+
+**Exemplo:**
+Se a `tabela_A` contém as linhas (1, 2, 3) e a `tabela_B` contém as linhas (2, 3, 4), a consulta `(SELECT * FROM tabela_A) INTERSECT (SELECT * FROM tabela_B)` retornaria:
+```
+2
+3
+```
+Estes são os únicos valores que existem em ambos os conjuntos.
+
+### Boas e Más Práticas
+
+#### 👍 Boas Práticas
+* **Encontrar Dados em Comum**: Use `INTERSECT` quando o objetivo claro é encontrar registros idênticos que existem em dois ou mais conjuntos de dados. É perfeito para perguntas como: "Quais produtos foram vendidos tanto na loja física quanto na online?".
+* **Reconciliação de Dados**: É uma ferramenta excelente para validar dados e reconciliar listas. Por exemplo, para encontrar quais funcionários de uma lista de "ativos" também aparecem em uma lista de "alocados em projetos".
+* **Simplificar Lógica Complexa**: Pode ser mais legível do que um `JOIN` ou uma subconsulta complexa quando a única intenção é encontrar a correspondência exata de linhas inteiras entre dois conjuntos.
+
+#### 👎 Más Práticas
+* **Confundir com `JOIN`**: A má prática mais comum é usá-lo quando você na verdade precisa de um `JOIN`. Lembre-se: `INTERSECT` compara linhas e retorna um único conjunto de colunas (baseado no primeiro `SELECT`). Um `JOIN` combina colunas de tabelas diferentes em uma única linha.
+* **Performance em Grandes Volumes**: Em tabelas muito grandes e sem os índices apropriados, o `INTERSECT` pode ser lento, pois o banco de dados precisa processar ambos os conjuntos de dados inteiros para depois encontrar as correspondências.
+* **Ignorar Alternativas**: Para cenários simples, um `INNER JOIN` ou uma subconsulta com `IN` ou `EXISTS` pode ser mais performático e mais familiar para outros desenvolvedores. Avalie sempre a melhor ferramenta para a tarefa.
+
+```sql
+-- Utilizando operador INTERSECT
+
+SELECT employee_id, job_id
+FROM   employees
+WHERE  job_id = 'IT_PROG'
+INTERSECT
+SELECT employee_id, job_id
+FROM   employees
+WHERE  department_id IN (60, 90, 100)
+ORDER BY employee_id;
+```
+
+---
+
+### O Operador `MINUS`
+
+O operador `MINUS` retorna todas as linhas únicas do resultado da **primeira** instrução `SELECT` que **não existem** no resultado da **segunda** instrução `SELECT`. Como o diagrama ilustra, ele retorna o que está no conjunto A, subtraindo qualquer parte que também esteja no conjunto B.
+
+A característica mais importante do `MINUS` é que **a ordem das consultas é crucial**. `A MINUS B` é completamente diferente de `B MINUS A`. Assim como outros operadores SET, ele também elimina duplicatas do resultado final.
+
+**Exemplo:**
+Se a `tabela_A` contém as linhas (1, 2, 3) e a `tabela_B` contém as linhas (2, 3, 4), a consulta `(SELECT * FROM tabela_A) MINUS (SELECT * FROM tabela_B)` retornaria:
+```
+1
+```
+Este é o único valor que existe em A, mas não existe em B.
+
+### Boas e Más Práticas
+
+#### 👍 Boas Práticas
+* **Encontrar Exceções**: Use `MINUS` quando precisar encontrar a diferença entre dois conjuntos de dados. É ideal para perguntas como: "Quais clientes do ano passado não fizeram compras este ano?".
+* **Auditoria e Validação**: Excelente para encontrar registros que estão faltando. Por exemplo, "Liste todos os funcionários que não registraram o ponto hoje".
+* **Clareza Lógica**: Para encontrar diferenças, `MINUS` é frequentemente mais legível e direto do que alternativas como `LEFT JOIN` com `WHERE IS NULL`.
+
+#### 👎 Más Práticas
+* **Inverter a Ordem**: A má prática mais comum e crítica é errar a ordem das consultas, o que levará a um resultado completamente diferente do esperado.
+* **Confundir com `NOT IN`**: Embora pareçam similares, `MINUS` e `NOT IN` tratam valores `NULL` de maneiras diferentes. `MINUS` pode ser mais previsível, pois `NOT IN` pode falhar em retornar resultados se a subconsulta contiver `NULL`s.
+* **Ignorar Performance**: Em alguns cenários com tabelas muito grandes, um `LEFT JOIN ... WHERE column IS NULL` ou uma subconsulta com `NOT EXISTS` pode ser mais performático. Vale a pena testar as alternativas.
+
+```sql
+-- Utilizando operador MINUS
+
+SELECT employee_id, job_id
+FROM   employees
+WHERE  department_id IN (60, 90, 100)
+MINUS
+SELECT employee_id, job_id
+FROM   employees
+WHERE  job_id = 'IT_PROG'
+ORDER BY employee_id;
+```
+
+### CUIDADOS
+
+```sql
+-- Cuidados com os tipos de dados na lista de colunas ou expressões do SELECT
+
+SELECT employee_id, job_id, hire_date
+FROM   employees
+WHERE  department_id IN (60, 90, 100)
+UNION
+SELECT employee_id, job_id, salary
+FROM   employees
+WHERE  job_id = 'IT_PROG'
+ORDER BY employee_id;
+
+-- Corrigindo o erro
+
+SELECT employee_id, job_id, hire_date, salary
+FROM   employees
+WHERE  department_id IN (60, 90, 100)
+UNION
+SELECT employee_id, job_id, hire_date, salary
+FROM   employees
+WHERE  job_id = 'IT_PROG'
+ORDER BY employee_id;
+
+-- Utilizando mais de um operador SET
+
+SELECT employee_id, job_id, hire_date, salary
+FROM   employees
+WHERE  department_id IN (60, 90, 100)
+UNION
+(SELECT employee_id, job_id, hire_date, salary
+FROM   employees
+WHERE  job_id = 'IT_PROG'
+INTERSECT
+SELECT employee_id, job_id, hire_date, salary
+FROM   employees
+WHERE  salary > 10000)
+ORDER BY employee_id;
+```
+
+
 
 
 [Voltar ao Índice](#indice)
