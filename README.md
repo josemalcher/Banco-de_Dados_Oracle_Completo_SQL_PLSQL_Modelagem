@@ -4615,6 +4615,9 @@ ORDER BY employee_id;
 
 ## <a name="parte14">14 - Seção 14: Oracle SQL - Comandos DML Manipulando dados</a>
 
+### 32. Oracle SQL - Comandos DML Manipulando dados
+
+
 
 
 [Voltar ao Índice](#indice)
